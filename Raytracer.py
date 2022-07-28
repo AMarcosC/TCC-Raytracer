@@ -1,4 +1,4 @@
-"""Notas da Versão"""
+"""Notas da Versão 0.8"""
 """
 Autor: Antônio Marcos Cruz da Paz - antonio.marcos@aluno.ufca.edu.br
 
@@ -429,7 +429,7 @@ def heatmap_to_img(heatmap):
                 line.append([0,0,0,0])
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
-    img1.save('Heatmap.png')
+    img1.save('output/Heatmap.png')
 
 
 def pixel_coordinates(n, m):
@@ -483,8 +483,8 @@ tri3 = Triangle(vec3(-60,45,-25), vec3(60,45,-25), vec3(60,-45,-25), [255, 255, 
 os.chdir(sys.path[0])
 print(os.listdir())
 change_to_current_dir()
-telhado_obj = parse('Telhado-Telhado.obj')
-modelagem_obj = parse('Telhado-Parede.obj')
+telhado_obj = parse('assets/Telhado-Telhado.obj')
+modelagem_obj = parse('assets/Telhado-Parede.obj')
 cena = [tri2, tri3]
 telhado = obj_to_triangles(telhado_obj, [217,101,78,255])
 modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
@@ -506,14 +506,14 @@ sunpath = [
 #[-0.8330, 73.97],
 #[4.18,	73.26],
 #[18.33, 70.43],
-[32.15,	65.89],
-[45.34,	58.37],
-[57.08,	44.88],
-[65.24,	19.86],
-[65.84,	344.63],
-[58.45,	317.74],
+#[32.15,	65.89],
+#[45.34,	58.37],
+#[57.08,	44.88],
+#[65.24,	19.86],
+#[65.84,	344.63],
+#[58.45,	317.74],
 [47.01,	303.09],
-[33.96,	295],
+#[33.96,	295],
 #[20.2, 290.18],
 #[6.09, 287.18],
 #[-0.833, 286.17]
@@ -534,7 +534,7 @@ for time in sunpath:
     tabela1 = trace_tri()  #transcreve os raios emitidos e a sua resposta em uma matriz
     heatmap.append(shadow_to_heatmap(tabela1))
     img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png
-    img1.save('MRay_Teste{}.png'.format(cont))
+    img1.save('output/MRay_Teste{}.png'.format(cont))
 
 heatmap_to_img(heatmap)
 print("---------------Terminou-------------------")
