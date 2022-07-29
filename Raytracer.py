@@ -31,133 +31,13 @@ Autor: Antônio Marcos Cruz da Paz - antonio.marcos@aluno.ufca.edu.br
 import os
 import sys
 from OBJFileParser import parse
+from BasicFunctions import *
 import math
 import numpy as np
 from PIL import Image
 from numpy import linalg
 from colour import Color
 
-"""Classes"""
-
-class vec3():  #classe que define o funcionamento de um vetor e suas operações
-    def __init__(self, x, y, z):
-        (self.x, self.y, self.z) = (x, y, z)
-    def __mul__(self, other):
-        return vec3(self.x * other, self.y * other, self.z * other)
-    def __add__(self, other):
-        return vec3(self.x + other.x, self.y + other.y, self.z + other.z)
-    def __sub__(self, other):
-        return vec3(self.x - other.x, self.y - other.y, self.z - other.z)
-    def dot(self, other):
-        return (self.x * other.x) + (self.y * other.y) + (self.z * other.z)
-    def __abs__(self):
-        return self.dot(self)
-    def norm(self):
-        mag = np.sqrt(abs(self))
-        return self * (1.0 / np.where(mag == 0, 1, mag))
-    def components(self):
-        return (self.x, self.y, self.z)
-    def extract(self, cond):
-        return vec3(extract(cond, self.x),
-                    extract(cond, self.y),
-                    extract(cond, self.z))
-    def place(self, cond):
-        r = vec3(np.zeros(cond.shape), np.zeros(cond.shape), np.zeros(cond.shape))
-        np.place(r.x, cond, self.x)
-        np.place(r.y, cond, self.y)
-        np.place(r.z, cond, self.z)
-        return r
-
-class Sphere:  #classse que define as propriedades de uma esfera
-    def __init__(self, center, r, color):
-        self.c = center
-        self.r = r
-        self.color = color
-
-class Objeto:  #classse que define as propriedades de uma esfera
-    def __init__(self, file, color):
-        self.f = file
-        self.color = color
-
-class Triangle:  #classe que define as propriedades de um triângulo
-    def __init__(self, v1, v2, v3, color, normal = vec3(0,0,1)):
-        self.v = [v1, v2, v3]
-        self.color = color
-        self.normal = normal
-
-class Point:  #classe que define um ponto (não utilizada pq a vec3 é mais completa)
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-"""Funções Básicas"""
-
-def vetor_escalar(vetor,escalar): #multiplicação de um vetor por um escalar
-    comp_x = vetor.x * escalar
-    comp_y = vetor.y * escalar
-    comp_z = vetor.z * escalar
-    return(vec3(comp_x,comp_y,comp_z))
-
-def menor(x1,x2):  #retorna o menor valor entre dois valores
-    if x1 <= x2:
-        return x1
-    else:
-        return x2
-
-def menor_absoluto(x1,x2):  #retorna o menor valor absoluto entre dois valores (com sinal)
-    if abs(x1) <= abs(x2):
-        return x1
-    else:
-        return x2
-
-def mais_proximo(x1,x2):  #retorna a interseção mais próxima em um objeto
-    if dir.z > 0:
-        if x1 >= x2:
-            return x1
-        else:
-            return x2
-    else:
-        if x1 >= x2:
-            return x2
-        else:
-            return x1
-
-
-def normal_sph(e,esfera):  #define o vetor normal unitário à superfície de uma esfera
-    normal_x = (e.x - esfera.c.x)/esfera.r
-    normal_y = (e.y - esfera.c.y)/esfera.r
-    normal_z = (e.z - esfera.c.z)/esfera.r
-    return vec3(normal_x, normal_y, normal_z)
-
-def azimuth(angle):  #converte o ângulo no sistema trigonométrico para o de azimute
-    if angle >= 0 and angle < 90:
-        return (90 - angle)
-    elif angle >= 90 and angle < 180:   #ajeitar depois
-        return (360 - (angle - 90))
-    elif angle >= 180 and angle < 270:  #ajeitar depois
-        return (270 - angle + 180)
-    elif angle >= 270 and angle < 360:
-        return (360 - angle + 90)
-
-def polar_to_vector(el,az):  #converte as coordenadas polares do sol em um vetor unitário
-    x = math.cos(math.radians(el))*math.cos(math.radians(az))
-    y = math.cos(math.radians(el))*math.sin(math.radians(az))
-    z = math.sin(math.radians(el))
-    return vec3(x, y, z)
-
-def polar_to_vector_ajustado(el,az):  #converte as coordenadas polares do sol em um vetor unitário, considerando azimute com 0° no norte e sentido horário
-    az_ajustado = azimuth(az)
-    x = math.cos(math.radians(el))*math.cos(math.radians(az_ajustado))
-    y = math.cos(math.radians(el))*math.sin(math.radians(az_ajustado))
-    z = math.sin(math.radians(el))
-    return vec3(x, y, z)
-
-
-def change_to_current_dir():  #muda a pasta de trabalho atual (apenas para debug)
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
 
 """Funções Voltadas ao problema"""
 
@@ -330,32 +210,6 @@ def trace_sph(): #função que emite os raios para um círculo
         table.append(line)           #adiciona a lista na matriz, para compor a imagem
     return table  #retorna a tabela com as cores
 
-"""
-def trace_tri(): #função que emite os raios para um conjunto de triângulos
-    table = []  #matriz vazia
-    for i in range (0, n_y, 1):  #passando pelos pixels verticalmente
-        line = []    #lista vazia
-        for j in range (0, n_x, 1):  #passando pelos pixels horizontalmente
-                et = pixel_pos(j,i)  #determina o ponto do pixel no espaço (origem da luz)
-                e = vec3(et[0],et[1], depth)  #a origem do raio é o ponto do pixel no espaço
-                res = ([0,0,0,0], FARAWAY)  #o pixel inicia as iterações como transparente e no infinito
-                for objeto in cena:  #pra cada objeto na cena
-                    temp = intercept_tri(objeto, e, dir)
-                    if temp[1] < res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1]
-                        res = temp
-                        intercept_point = ray_p(temp[1],e,dir)  #descobrimos o ponto dessa interceptação no espaço
-                        temp = (diffuse_tri(intercept_point, objeto, luz_dir, kd, ka),temp[1])  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
-                        if temp[1] <= res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1] - ESTUDAR RETIRAR
-                            res = temp         #Estudar retirar, parece desnecessário
-                        for outro_obj in cena: #para os objetos na cena
-                            if outro_obj != objeto and intercept_tri_bool(outro_obj, intercept_point,luz_dir): #se o objeto não for ele mesmo e interceptar outra esfera
-                                #if temp[1] <= res[1]:  #e a distância dessa interceptação for menor ou igual que a atual
-                                res = ([0,0,0,255], temp[1])  #então este pixel está na sombra
-                line.append(res[0])     #adiciona o valor da cor interceptada na lista
-        print("{} de {}".format(i, n_y))       #indica o andamento
-        table.append(line)           #adiciona a lista na matriz, para compor a imagem
-    return table  #retorna a tabela com as cores
-"""
 
 def trace_tri(): #função que emite os raios para um conjunto de triângulos
     table = []  #matriz vazia
@@ -383,19 +237,6 @@ def trace_tri(): #função que emite os raios para um conjunto de triângulos
     return table  #retorna a tabela com as cores
 
 
-"""
-def shadow_to_heatmap(tabela):  #transforma os valores do vetor heatmap em uma tabela de cores
-    tabela_return = []
-    for i in range (0, len(tabela)):
-        linha_return = []
-        for j in range (0, len(tabela[0])):
-            if tabela[i][j] == [0,0,0,255]:
-                linha_return.append(1)
-            else:
-                linha_return.append(0)
-        tabela_return.append(linha_return)
-    return tabela_return
-"""
 
 def shadow_to_heatmap(tabela):  #transforma os valores do vetor heatmap em uma tabela de cores
     tabela_return = []
@@ -538,9 +379,3 @@ for time in sunpath:
 
 heatmap_to_img(heatmap)
 print("---------------Terminou-------------------")
-"""
-luz_dir = polar_to_vector(sunpath[4][0], sunpath[4][1])
-tabela1 = trace_tri()  #transcreve os raios emitidos e a sua resposta em uma matriz
-img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png
-img1.save('MRay_{}.png'.format(cont))
-"""
