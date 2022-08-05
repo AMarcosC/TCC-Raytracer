@@ -271,6 +271,7 @@ def heatmap_to_img(heatmap):
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/Heatmap.png')
+    return soma
 
 
 def pixel_coordinates(n, m):
@@ -284,7 +285,7 @@ def pixel_coordinates(n, m):
         tabela_pc.append(linha_pc)
     return tabela_pc
 
-def area_of_interest(pixel_positions):
+def area_of_interest(pixel_positions):   #retorna
     tab_area_of_interest = np.full_like(pixel_positions, None)
     print("---Delimitando área de interesse---")
     for i in range (0, len(pixel_positions), 1):
@@ -298,6 +299,16 @@ def area_of_interest(pixel_positions):
                     intercept_point = ray_p(dist_atual,pos_ini,dir)  #descobrimos o ponto dessa interceptação no espaço
                     tab_area_of_interest[i][j] = intercept_point
     return tab_area_of_interest
+
+def create_shape(intensity):
+    if intensity < 0 and intensity > len(heatmap):
+        print('Não há região com a intensidade determinada!')
+    for i in range (0,len(area_de_interesse),1):
+        for j in range (0,len(area_de_interesse[0]),1):
+            vect = area_de_interesse[i][j]
+            if vect != None and heatmap_somado[i][j] == intensity:
+                shape_points.append(vect)
+                print("x:{} y:{}".format(vect.x, vect.y))
 
 
 
@@ -363,10 +374,11 @@ sunpath = [
 """Inicialização"""
 cont = 0
 heatmap = []
+shape_points = []  #testando apenas
 
 coordenadas_pixels = pixel_coordinates(n_y,n_x)
 coordenadas_intercept = []
-area_de_interesse = area_of_interest(coordenadas_pixels)
+area_de_interesse = area_of_interest(coordenadas_pixels)  #area_de_interesse: matriz de coordenadas em vec3
 
 for time in sunpath:
     cont = cont+1
@@ -377,5 +389,10 @@ for time in sunpath:
     img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/MRay_Teste{}.png'.format(cont))
 
-heatmap_to_img(heatmap)
+print(heatmap)
+
+heatmap_somado = heatmap_to_img(heatmap)
+
+create_shape(0)
+
 print("---------------Terminou-------------------")
