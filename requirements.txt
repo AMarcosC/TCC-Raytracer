@@ -1,5 +1,7 @@
+alphashape==1.3.1
 colour==0.1.5
+descartes==1.1.0
+matplotlib==3.5.2
 numpy==1.22.3
+pandas==1.4.3
 Pillow==9.2.0
-pyglet==1.5.23
-PyWavefront==1.3.3
