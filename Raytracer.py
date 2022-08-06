@@ -307,7 +307,8 @@ def create_shape(intensity):
         for j in range (0,len(area_de_interesse[0]),1):
             vect = area_de_interesse[i][j]
             if vect != None and heatmap_somado[i][j] == intensity:
-                shape_points.append(vect)
+                #shape_points.append(vect)  se quisesse colocar como vetor
+                shape_points.append([vect.x, vect.y])
                 print("x:{} y:{}".format(vect.x, vect.y))
 
 
@@ -394,5 +395,9 @@ print(heatmap)
 heatmap_somado = heatmap_to_img(heatmap)
 
 create_shape(0)
+shape_csv = np.asarray(shape_points)
+print(shape_csv)
+np.savetxt("shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
+#shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
 
 print("---------------Terminou-------------------")
