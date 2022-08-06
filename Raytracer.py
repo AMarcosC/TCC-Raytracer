@@ -300,16 +300,35 @@ def area_of_interest(pixel_positions):   #retorna
                     tab_area_of_interest[i][j] = intercept_point
     return tab_area_of_interest
 
+
+def silhueta_points(mat_tela, i, j, intensity):
+    if i == 0 or j == 0 or i == (len(mat_tela)-1) or j == (len(mat_tela[0])-1):
+        return False
+    elif (mat_tela[i-1][j-1] != intensity or
+        mat_tela[i-1][j] != intensity or
+        mat_tela[i-1][j+1] != intensity or
+        mat_tela[i][j-1] != intensity or
+        mat_tela[i][j+1] != intensity or
+        mat_tela[i+1][j-1] != intensity or
+        mat_tela[i+1][j] != intensity or
+        mat_tela[i+1][j+1] != intensity):
+        return True
+    else:
+        return False
+
+
+
 def create_shape(intensity):
     if intensity < 0 and intensity > len(heatmap):
         print('Não há região com a intensidade determinada!')
     for i in range (0,len(area_de_interesse),1):
         for j in range (0,len(area_de_interesse[0]),1):
             vect = area_de_interesse[i][j]
-            if vect != None and heatmap_somado[i][j] == intensity:
+            if vect != None and heatmap_somado[i][j] == intensity and silhueta_points(heatmap_somado, i, j, intensity):
                 #shape_points.append(vect)  se quisesse colocar como vetor
                 shape_points.append([vect.x, vect.y])
                 print("x:{} y:{}".format(vect.x, vect.y))
+
 
 
 
@@ -394,10 +413,10 @@ print(heatmap)
 
 heatmap_somado = heatmap_to_img(heatmap)
 
-create_shape(0)
+create_shape(1)
 shape_csv = np.asarray(shape_points)
 print(shape_csv)
-np.savetxt("shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
+np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
 #shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
 
 print("---------------Terminou-------------------")

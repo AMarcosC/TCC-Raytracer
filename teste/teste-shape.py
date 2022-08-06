@@ -22,12 +22,15 @@ points_2d = []
 parse_csv("shape.csv")
 print(points_2d)
 
+
+"""
 fig, ax = plt.subplots()
 ax.scatter(*zip(*points_2d))
 plt.savefig('figura-teste')
 plt.show()
-
 """
+
+
 alpha_shape = alphashape.alphashape(points_2d)
 print(alpha_shape)
 
@@ -36,4 +39,3 @@ ax.scatter(*zip(*points_2d))
 ax.add_patch(PolygonPatch(alpha_shape, alpha=0.2))
 plt.savefig('figura-teste')
 plt.show()
-"""
