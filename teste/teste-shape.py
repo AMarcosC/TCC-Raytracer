@@ -1,3 +1,8 @@
+"""
+Código destinado a testes para composição de uma figura geométrica baseada nos pontos
+que delimitam áreas de mesma intensidade de insolação/sombreamento
+"""
+
 import os
 import sys
 import pandas as pd
@@ -17,6 +22,9 @@ def parse_csv(csv_file):
 
 #points_2d = [(0., 0.), (0., 1.), (1., 1.), (1., 0.),
 #          (0.5, 0.25), (0.5, 0.75), (0.25, 0.5), (0.75, 0.5)]
+
+os.chdir(sys.path[0])    #muda o diretório atual onde o código está sendo executado - método 01
+print(os.listdir())      #muda o diretório atual onde o código está sendo executado - método 01
 
 points_2d = []
 parse_csv("shape.csv")
