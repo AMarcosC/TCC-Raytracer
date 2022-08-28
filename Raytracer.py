@@ -37,6 +37,7 @@ import numpy as np
 from PIL import Image
 from numpy import linalg
 from colour import Color
+import pickle
 
 
 """Funções Voltadas ao problema"""
@@ -285,7 +286,7 @@ def pixel_coordinates(n, m):
         tabela_pc.append(linha_pc)
     return tabela_pc
 
-def area_of_interest(pixel_positions):   #retorna
+def area_of_interest(pixel_positions):   #retorna uma matriz com apenas os pontos da área de interesse, vec3
     tab_area_of_interest = np.full_like(pixel_positions, None)
     print("---Delimitando área de interesse---")
     for i in range (0, len(pixel_positions), 1):
@@ -301,7 +302,7 @@ def area_of_interest(pixel_positions):   #retorna
     return tab_area_of_interest
 
 
-def silhueta_points(mat_tela, i, j, intensity):
+def silhueta_points(mat_tela, i, j, intensity):  #função que retorna apenas os pontos da silhueta das áreas de determinada intensidade
     if i == 0 or j == 0 or i == (len(mat_tela)-1) or j == (len(mat_tela[0])-1):
         return False
     elif (mat_tela[i-1][j-1] != intensity or
@@ -317,7 +318,6 @@ def silhueta_points(mat_tela, i, j, intensity):
         return False
 
 
-
 def create_shape(intensity):
     if intensity < 0 and intensity > len(heatmap):
         print('Não há região com a intensidade determinada!')
@@ -328,7 +328,6 @@ def create_shape(intensity):
                 #shape_points.append(vect)  se quisesse colocar como vetor
                 shape_points.append([vect.x, vect.y])
                 print("x:{} y:{}".format(vect.x, vect.y))
-
 
 
 
@@ -411,12 +410,18 @@ for time in sunpath:
 
 print(heatmap)
 
+
 heatmap_somado = heatmap_to_img(heatmap)
+print(heatmap_somado)
+
+python_array_to_pickle(heatmap_somado, 'heatmap')
+python_array_to_pickle(area_de_interesse, 'area')
 
 create_shape(1)
 shape_csv = np.asarray(shape_points)
 print(shape_csv)
 np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
 #shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
+
 
 print("---------------Terminou-------------------")

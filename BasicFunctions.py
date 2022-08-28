@@ -7,6 +7,7 @@ import os
 import math
 import numpy as np
 import sys
+import pickle
 
 """Classes"""
 
@@ -129,3 +130,16 @@ def change_to_current_dir():  #muda a pasta de trabalho atual (apenas para debug
     abspath = os.path.abspath(__file__)
     dname = os.path.dirname(abspath)
     os.chdir(dname)
+
+def vec3_array_to_python_array(array):
+    new_array=np.full_like(array, None)
+    for i in range (0, len(array), 1):
+        for j in range (0, len(array[0]), 1):
+            if array[i][j] != None:
+                new_array[i][j] == [array[i][j].x, array[i][j].y, array[i][j].z]
+    return new_array
+
+def python_array_to_pickle(array, filename):
+    file = open(filename, 'ab')
+    pickle.dump(array, file)
+    file.close()
