@@ -4,9 +4,13 @@ from BasicFunctions import *
 from colour import Color
 from PIL import Image
 
+"""
+Observações:
 
-width = 1
-height = 2
+É desnecessário utilizar a matriz da área de interesse na locação, já que o mapa de calor só existe na área de interesse mesmo.
+Porém ela pode ser utilizada para verificar a inclinação do telhado.
+
+"""
 
 """Funções"""
 
@@ -33,10 +37,11 @@ def placing_possible(i,j):
     #print("J atual: {}".format(j))
     temp_list = []
     for u in range (i-(panel_pix_y//2), i+(panel_pix_y//2), 1):
-        for v in range (i-(panel_pix_x//2), i+(panel_pix_x//2), 1):
+        for v in range (j-(panel_pix_x//2), j+(panel_pix_x//2), 1):
             if (placas_locadas[u][v] == None and
-            heatmap[u][v] == 0 and
-            area_de_interesse[u][v] != None):
+            heatmap[u][v] == 0 #and
+            #area_de_interesse[u][v] != None
+            ):
                 temp_list.append(True)
             else:
                 temp_list.append(False)
@@ -48,7 +53,7 @@ def placing_possible(i,j):
 
 def execute_placing(i,j):
     for u in range (i-(panel_pix_y//2), i+(panel_pix_y//2), 1):
-        for v in range (i-(panel_pix_x//2), i+(panel_pix_x//2), 1):
+        for v in range (j-(panel_pix_x//2), j+(panel_pix_x//2), 1):
             placas_locadas[u][v] = 1
     #for a in range (i-1-(panel_pix_x//2), i+1+(panel_pix_x//2), 1):
         #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
@@ -63,6 +68,9 @@ def place_panels():
                 print("---------------------------")
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
+            else:
+                where_looking[i][j] = 1
+                continue
 
 
 def heatmap_to_img():
@@ -82,10 +90,8 @@ def heatmap_to_img():
     return soma
 
 
-def area_de_interesse_img():
-    initial_color = Color("blue")
+def area_de_interesse_img():  #apenas para debug
     soma = area_de_interesse
-    print(placas_locadas)
     img = []
     for i in soma:
         line = []
@@ -99,13 +105,30 @@ def area_de_interesse_img():
     img1.save('output/Area.png')
     return soma
 
+
+def where_looking_img():  #apenas para debug
+    soma = where_looking
+    img = []
+    for i in soma:
+        line = []
+        for j in i:
+            if j != None:
+                line.append([10,200,10,255])
+            else:
+                line.append([255,255,255,255])
+        img.append(line)
+    img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
+    img1.save('output/Loop_debug.png')
+    return soma
+
+
 """Variáveis Globais"""
 pix_x = None
 pix_y = None
 pix_area = None
 
-panel_pix_x = 21  #trocar depois nas funções
-panel_pix_y = 11
+panel_pix_x = 11  #trocar depois nas funções
+panel_pix_y = 21
 
 
 
@@ -121,6 +144,8 @@ heatmap = pickle.load(file_heatmap)
 
 placas_locadas = np.full_like(area_de_interesse, None)
 
+where_looking = np.full_like(area_de_interesse, None)
+
 pix_dim=pixel_size()
 
 print(area_de_interesse.shape)
@@ -132,3 +157,4 @@ heatmap_to_img()
 
 print(placas_locadas)
 area_de_interesse_img()
+where_looking_img()
