@@ -2,7 +2,7 @@
 
 ## Exemplos
 
-Exemplos para demonstração do código estão presentes na pasta "legacy-examples".
+Exemplos para demonstração do código estão presentes na pasta "legacy-examples". A execução do exemplo necessita da instalação das bibliotecas presentes em **requirements.txt**. Para instalar as dependências, basta executar *pip install -r requirements.txt* (o uso de um *virtual environment* é recomendado).
 
 Executando-se **legacy-examples/raytracer - modelo 01/Raytracer.py**, serão obtidos os resultados presentes
 no TCC 01:
@@ -21,7 +21,10 @@ no TCC 01:
     - 1 foto correspondente ao campo escelar de sombreamento.
 ~~~
 
+## Versão atual
+
+Os arquivos soltos na pasta raíz do repositório, como também as pastas *teste*, *assets* e *output*, são as versões que estão sendo constantemente modificadas.
+
 ## Melhorias Pendentes
 - Alterar a área de alcance da tela baseado no tamanho do modelo tridimensional (tornar a tela maior ou menor, ou reposicionar a tela, de forma que todo o modelo apareça nas imagens, mas que também não fique pequeno);
-- Separar os exemplos do código geral;
 - Aplicar Multiprocessamento e/ou uso da GPU;
