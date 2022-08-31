@@ -10,6 +10,14 @@ Observações:
 É desnecessário utilizar a matriz da área de interesse na locação, já que o mapa de calor só existe na área de interesse mesmo.
 Porém ela pode ser utilizada para verificar a inclinação do telhado.
 
+Próximos passos:
+    - Alternar entre vertical e horizontal
+    - Determinar eixos de implantação para executabilidade (placas alinhadas)
+    - Testar várias ordens de colocação (outras heurísticas)
+    - Considerar inclinação
+    - Permitir a colocação de placas em áreas de sombreamento leve (usar < ou > em vez de =)
+    - Permitir exportação da locação das placas (coordenadas)
+
 """
 
 """Classes"""
@@ -40,7 +48,43 @@ def pixel_size():
                 print("Área do pixel: {}".format(pix_area))
                 return(pix_x,pix_y)
 
-#def panel_pixel_size():
+def not_surrounded_by(array,i,j,value):
+        if i == 0 or j == 0 or i == (len(array)-1) or j == (len(array[0])-1):  #evitar out of index
+            return False
+        elif (array[i-1][j-1] != value and
+            array[i-1][j] != value and
+            array[i-1][j+1] != value and
+            array[i][j-1] != value and
+            array[i][j+1] != value and
+            array[i+1][j-1] != value and
+            array[i+1][j] != value and
+            array[i+1][j+1] != value):
+            return True
+        else:
+            return False
+
+def slope(p0, p1):
+    dx = p1.x - p0.x
+    dy = p1.y - p0.y
+    dz = p1.z - p0.z
+    dl = math.sqrt((dx**2) + (dy**2))
+    return (abs(dz/dl))
+
+def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor que esse valor venha do modelo
+    for i in range (0, len(ar), 1):
+        for j in range (0, len(ar[0])):
+            if not_surrounded_by(ar, i, j, None):
+                temp = 0
+                if slope(ar[i][j-1], ar[i][j+1]) > temp:
+                    temp = slope(ar[i][j-1], ar[i][j+1])
+                elif slope(ar[i-1][j], ar[i+1][j]) > temp:
+                    temp = slope(ar[i-1][j], ar[i+1][j])
+                elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:
+                    temp = slope(ar[i-1][j-1], ar[i+1][j+1])
+                elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
+                    temp = slope(ar[i+1][j-1], ar[i-1][j+1])
+                return temp
+
 
 def placing_possible(i,j):
     #print("I atual: {}".format(i))
@@ -143,9 +187,8 @@ pix_x = None
 pix_y = None
 pix_area = None
 
-panel_pix_x = 21  #trocar depois nas funções
-panel_pix_y = 11
-
+panel_pix_x = 11  #trocar depois nas funções
+panel_pix_y = 21
 
 
 """Inicialização"""
@@ -153,6 +196,8 @@ panel_pix_y = 11
 file_area = open('area', 'rb')
 area_de_interesse = pickle.load(file_area)
 
+incl = find_slope(area_de_interesse)
+print("Inclinação: {}".format(incl))
 
 file_heatmap = open('heatmap', 'rb')
 heatmap = pickle.load(file_heatmap)
