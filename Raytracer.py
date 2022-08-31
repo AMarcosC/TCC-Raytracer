@@ -59,6 +59,38 @@ def pixel_pos(i,j):  #transforma um pixel na tela em um ponto no espaço
     return([u, v])
 
 
+def screen_size(list_triangles):
+    global l, r, top, bot, depth, n_x, n_y
+    x_menor = FARAWAY
+    x_maior = - FARAWAY
+    y_menor = FARAWAY
+    y_maior = - FARAWAY
+    z_maior = - FARAWAY
+    for triangle in list_triangles:
+        for vertex in triangle.v:
+            if vertex.x > x_maior:
+                x_maior = vertex.x
+            if vertex.x < x_menor:
+                x_menor = vertex.x
+            if vertex.y > y_maior:
+                y_maior = vertex.y
+            if vertex.y < y_menor:
+                y_menor = vertex.y
+            if vertex.z > z_maior:
+                z_maior = vertex.z
+    l = (int((x_menor)*1.2)) - 1
+    r = (int((x_maior)*1.2)) + 1
+    top = (int((y_maior)*1.2)) + 1
+    bot = (int((y_menor)*1.2)) - 1
+    if z_maior <= 0:
+        depth = 1
+    else:
+        depth = int(z_maior) + 1
+    n_x = abs(r-l)*25
+    n_y = abs(top-bot)*25
+
+
+
 def intersect_sph(e,esfera): #função que determina se um vetor intercepta uma esfera (retorna cor e distância)
     raiz = ((dir.dot((e-esfera.c)))**2) - ((dir.dot(dir))*(((e-esfera.c).dot((e-esfera.c))) - ((esfera.r)**2)))
     if raiz > 0:
@@ -356,13 +388,16 @@ print(os.listdir())
 change_to_current_dir()
 telhado_obj = parse('assets/Telhado-Telhado.obj')
 modelagem_obj = parse('assets/Telhado-Parede.obj')
-cena = [tri2, tri3]
+cena = []
 telhado = obj_to_triangles(telhado_obj, [217,101,78,255])
 modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
 
 add_triangles_to_cena(telhado)
 add_triangles_to_cena(modelagem)
 
+screen_size(cena)
+
+print(n_x, n_y)
 
 dir = vec3(0,0,-1) #direção dos raios lançados pela tela
 # a direção "d" do raio é sempre -w [0,0,-1] (vetor unitário)
@@ -377,14 +412,14 @@ sunpath = [
 #[-0.8330, 73.97],
 #[4.18,	73.26],
 #[18.33, 70.43],
-#[32.15,	65.89],
-#[45.34,	58.37],
-#[57.08,	44.88],
-#[65.24,	19.86],
-#[65.84,	344.63],
-#[58.45,	317.74],
+[32.15,	65.89],
+[45.34,	58.37],
+[57.08,	44.88],
+[65.24,	19.86],
+[65.84,	344.63],
+[58.45,	317.74],
 [47.01,	303.09],
-#[33.96,	295],
+[33.96,	295],
 #[20.2, 290.18],
 #[6.09, 287.18],
 #[-0.833, 286.17]

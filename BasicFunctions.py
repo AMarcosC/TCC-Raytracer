@@ -141,7 +141,7 @@ def vec3_array_to_python_array(array):
     return new_array
 
 def python_array_to_pickle(array, filename):
-    file = open(filename, 'ab')
+    file = open(filename, 'wb')
     pickle.dump(array, file)
     file.close()
 
