@@ -12,6 +12,16 @@ Porém ela pode ser utilizada para verificar a inclinação do telhado.
 
 """
 
+"""Classes"""
+
+
+class Placa:  #classse que define as propriedades de um objeto genérico qualquer
+    def __init__(self, id, coord):
+        self.id = id
+        self.color = random_color()
+        self.coord = coord
+
+
 """Funções"""
 
 def pixel_size():
@@ -54,36 +64,42 @@ def placing_possible(i,j):
 def execute_placing(i,j):
     for u in range (i-(panel_pix_y//2), i+(panel_pix_y//2), 1):
         for v in range (j-(panel_pix_x//2), j+(panel_pix_x//2), 1):
-            placas_locadas[u][v] = 1
+            placas_locadas[u][v] = placas_counter
     #for a in range (i-1-(panel_pix_x//2), i+1+(panel_pix_x//2), 1):
         #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
             #print(placas_locadas[a][b])
 
 def place_panels():
+    global placas_counter
     for i in range(((panel_pix_y//2)+1), len(placas_locadas) - ((panel_pix_y//2)+1),1):
         for j in range(((panel_pix_x//2)+1),len(placas_locadas[0]) - ((panel_pix_x//2)+1),1):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
+                placas_counter += 1
                 execute_placing(i,j)
+                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
                 print("---------------------------")
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
-            else:
+            else:   #apenas por motivos de debug
                 where_looking[i][j] = 1
                 continue
 
+def return_placa_color(ident):
+    for placa in lista_placas:
+        if placa.id == ident:
+            return placa.color
 
-def heatmap_to_img():
-    initial_color = Color("blue")
+def placas_img():
     soma = placas_locadas
     img = []
     for i in soma:
         line = []
         for j in i:
             if j != None and j >= 0:
-                line.append([0,0,255,255])
+                line.append(return_placa_color(j))
             else:
-                line.append([255,255,255,255])
+                line.append([255,255,255,0])
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/Placas.png')
@@ -127,8 +143,8 @@ pix_x = None
 pix_y = None
 pix_area = None
 
-panel_pix_x = 11  #trocar depois nas funções
-panel_pix_y = 21
+panel_pix_x = 21  #trocar depois nas funções
+panel_pix_y = 11
 
 
 
@@ -143,6 +159,8 @@ heatmap = pickle.load(file_heatmap)
 
 
 placas_locadas = np.full_like(area_de_interesse, None)
+lista_placas = []
+placas_counter = 0
 
 where_looking = np.full_like(area_de_interesse, None)
 
@@ -153,8 +171,9 @@ print(heatmap.shape)
 print(placas_locadas.shape)
 
 place_panels()
-heatmap_to_img()
+placas_img()
 
 print(placas_locadas)
 area_de_interesse_img()
 where_looking_img()
+overlay_images('output/Placas.png', 'output/Heatmap.png','output/placas_overlay.png')

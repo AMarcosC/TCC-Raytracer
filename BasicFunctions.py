@@ -8,6 +8,7 @@ import math
 import numpy as np
 import sys
 import pickle
+from PIL import Image
 
 """Classes"""
 
@@ -143,3 +144,15 @@ def python_array_to_pickle(array, filename):
     file = open(filename, 'ab')
     pickle.dump(array, file)
     file.close()
+
+def random_color():
+    color = list(np.random.choice(range(256), size=3))
+    return ([color[0], color[1], color[2], 255])
+
+def overlay_images(front_image, back_image, final_image):
+    img1 = Image.open(front_image)
+    img1 = img1.convert("RGBA")
+    img2 = Image.open(back_image)
+    img2 = img2.convert("RGBA")
+    new_img = Image.blend(img2, img1, 0.5)
+    new_img.save(final_image,"PNG")
