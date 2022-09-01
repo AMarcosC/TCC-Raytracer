@@ -78,6 +78,12 @@ def menor(x1,x2):  #retorna o menor valor entre dois valores
     else:
         return x2
 
+def maior(x1,x2):  #retorna o menor valor entre dois valores
+    if x1 <= x2:
+        return x2
+    else:
+        return x1
+
 def menor_absoluto(x1,x2):  #retorna o menor valor absoluto entre dois valores (com sinal)
     if abs(x1) <= abs(x2):
         return x1

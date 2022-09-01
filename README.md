@@ -25,6 +25,13 @@ no TCC 01:
 
 Os arquivos soltos na pasta raíz do repositório, como também as pastas *teste*, *assets* e *output*, são as versões que estão sendo constantemente modificadas.
 
-## Melhorias Pendentes
+
+## Recursos adicionados recentemente
+
 - Alterar a área de alcance da tela baseado no tamanho do modelo tridimensional (tornar a tela maior ou menor, ou reposicionar a tela, de forma que todo o modelo apareça nas imagens, mas que também não fique pequeno);
-- Aplicar Multiprocessamento e/ou uso da GPU;
+- Placas multicoloridas (cor escolhida aleatoriamente).
+
+## Melhorias Pendentes
+
+- Aplicar Multiprocessamento e/ou uso da GPU no processamento do traçado de raios;
+- Processar o ray-tracing apenas na área de interesse, agilizando o código.

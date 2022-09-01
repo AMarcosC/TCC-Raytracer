@@ -75,15 +75,37 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
         for j in range (0, len(ar[0])):
             if not_surrounded_by(ar, i, j, None):
                 temp = 0
+                or_temp = None
                 if slope(ar[i][j-1], ar[i][j+1]) > temp:
                     temp = slope(ar[i][j-1], ar[i][j+1])
+                    or_temp = 'x'
                 elif slope(ar[i-1][j], ar[i+1][j]) > temp:
                     temp = slope(ar[i-1][j], ar[i+1][j])
+                    or_temp = 'y'
                 elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:
                     temp = slope(ar[i-1][j-1], ar[i+1][j+1])
+                    or_temp = 'other'
                 elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
                     temp = slope(ar[i+1][j-1], ar[i-1][j+1])
-                return temp
+                    or_temp = 'other'
+                return (temp, or_temp)
+
+def placa_projection():
+    alpha = math.cos(math.atan(incl[0]))
+    if orient == 'Vert' and incl[1] == 'x':
+        placa_dimx = menor(placa_dim1, placa_dim2) * alpha
+        placa_dimy = maior(placa_dim1, placa_dim2)
+    elif orient == 'Vert' and incl[1] == 'y':
+        placa_dimx = menor(placa_dim1, placa_dim2)
+        placa_dimy = maior(placa_dim1, placa_dim2) * alpha
+    elif orient =='Hor' and incl[1] == 'x':
+        placa_dimx = maior(placa_dim1, placa_dim2) * alpha
+        placa_dimy = menor(placa_dim1, placa_dim2)
+    elif orient =='Hor' and incl[1] == 'y':
+        placa_dimx = maior(placa_dim1, placa_dim2)
+        placa_dimy = menor(placa_dim1, placa_dim2) * alpha
+
+#def dimention_to_pixel()
 
 
 def placing_possible(i,j):
@@ -186,6 +208,14 @@ def where_looking_img():  #apenas para debug
 pix_x = None
 pix_y = None
 pix_area = None
+incl = find_slope(area_de_interesse)
+
+placa_dim1 = 1.65
+placa_dim2 = 1.00
+orient = "Vert"
+
+placa_dimx = None
+placa_dimy = None
 
 panel_pix_x = 11  #trocar depois nas funções
 panel_pix_y = 21
@@ -196,7 +226,7 @@ panel_pix_y = 21
 file_area = open('area', 'rb')
 area_de_interesse = pickle.load(file_area)
 
-incl = find_slope(area_de_interesse)
+
 print("Inclinação: {}".format(incl))
 
 file_heatmap = open('heatmap', 'rb')
