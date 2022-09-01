@@ -162,3 +162,9 @@ def overlay_images(front_image, back_image, final_image):
     img2 = img2.convert("RGBA")
     new_img = Image.blend(img2, img1, 0.5)
     new_img.save(final_image,"PNG")
+
+def impar(x):
+    if x%2 != 0:
+        return True
+    else:
+        return False

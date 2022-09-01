@@ -33,6 +33,7 @@ class Placa:  #classse que define as propriedades de um objeto genérico qualque
 """Funções"""
 
 def pixel_size():
+    global pix_x, pix_y, pix_area, area_de_interesse
     for i in range (0 , len(area_de_interesse)):
         for j in range (0, len(area_de_interesse[0])):
             if area_de_interesse[i][j] != None and area_de_interesse[i+1][j+1] != None:
@@ -91,7 +92,9 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
                 return (temp, or_temp)
 
 def placa_projection():
+    global placa_dim1, placa_dim2, placa_dimx, placa_dimy
     alpha = math.cos(math.atan(incl[0]))
+    print(alpha)
     if orient == 'Vert' and incl[1] == 'x':
         placa_dimx = menor(placa_dim1, placa_dim2) * alpha
         placa_dimy = maior(placa_dim1, placa_dim2)
@@ -105,7 +108,21 @@ def placa_projection():
         placa_dimx = maior(placa_dim1, placa_dim2)
         placa_dimy = menor(placa_dim1, placa_dim2) * alpha
 
-#def dimention_to_pixel()
+def dimention_to_pixel():
+    global panel_pix_x, panel_pix_y
+    temp_x = (placa_dimx//round(pix_x,4)) + 1
+    temp_y = (placa_dimy//round(pix_y,4)) + 1
+    if impar(temp_x) == True:
+        panel_pix_x = int(temp_x)
+    else:
+        panel_pix_x = int(temp_x+1)
+    if impar(temp_y) == True:
+        panel_pix_y = int(temp_y)
+    else:
+        panel_pix_y = int(temp_y+1)
+    print("Placa terá {} px em X e {} px em Y".format(panel_pix_x,panel_pix_y))
+    print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,4),panel_pix_y*round(pix_y,4)))
+
 
 
 def placing_possible(i,j):
@@ -208,11 +225,11 @@ def where_looking_img():  #apenas para debug
 pix_x = None
 pix_y = None
 pix_area = None
-incl = find_slope(area_de_interesse)
+
 
 placa_dim1 = 1.65
 placa_dim2 = 1.00
-orient = "Vert"
+orient = "Hor"
 
 placa_dimx = None
 placa_dimy = None
@@ -221,11 +238,21 @@ panel_pix_x = 11  #trocar depois nas funções
 panel_pix_y = 21
 
 
+
 """Inicialização"""
+
+
 
 file_area = open('area', 'rb')
 area_de_interesse = pickle.load(file_area)
 
+pix_dim=pixel_size()
+incl = find_slope(area_de_interesse)
+
+
+placa_projection()
+print(placa_dimx, placa_dimy)
+dimention_to_pixel()
 
 print("Inclinação: {}".format(incl))
 
@@ -239,7 +266,7 @@ placas_counter = 0
 
 where_looking = np.full_like(area_de_interesse, None)
 
-pix_dim=pixel_size()
+
 
 print(area_de_interesse.shape)
 print(heatmap.shape)
