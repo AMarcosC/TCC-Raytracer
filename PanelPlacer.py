@@ -155,6 +155,7 @@ def execute_placing(i,j):
 def place_panels():
     global placas_counter
     for i in range(((panel_pix_y//2)+1), len(placas_locadas) - ((panel_pix_y//2)+1),1):
+        print("Etapa {} de {}".format(i,len(placas_locadas)))
         for j in range(((panel_pix_x//2)+1),len(placas_locadas[0]) - ((panel_pix_x//2)+1),1):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:

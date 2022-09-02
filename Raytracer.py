@@ -60,7 +60,7 @@ def pixel_pos(i,j):  #transforma um pixel na tela em um ponto no espaço
 
 
 def screen_size(list_triangles):
-    global l, r, top, bot, depth, n_x, n_y
+    global l, r, top, bot, depth, n_x, n_y, pixel_por_metro
     x_menor = FARAWAY
     x_maior = - FARAWAY
     y_menor = FARAWAY
@@ -86,8 +86,8 @@ def screen_size(list_triangles):
         depth = 1
     else:
         depth = int(z_maior) + 1
-    n_x = abs(r-l)*25
-    n_y = abs(top-bot)*25
+    n_x = abs(r-l)*pixel_por_metro
+    n_y = abs(top-bot)*pixel_por_metro
 
 
 
@@ -322,6 +322,7 @@ def area_of_interest(pixel_positions):   #retorna uma matriz com apenas os ponto
     tab_area_of_interest = np.full_like(pixel_positions, None)
     print("---Delimitando área de interesse---")
     for i in range (0, len(pixel_positions), 1):
+        print("Etapa {} de {}".format(i,len(pixel_positions)))
         for j in range (0, len(pixel_positions[0]), 1):
             pos_ini = pixel_positions[i][j]
             dist_atual = FARAWAY
@@ -365,6 +366,7 @@ def create_shape(intensity):
 
 """Variáveis Globais e Locais"""
 
+pixel_por_metro = 50
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
 
@@ -386,8 +388,8 @@ tri3 = Triangle(vec3(-60,45,-25), vec3(60,45,-25), vec3(60,-45,-25), [255, 255, 
 os.chdir(sys.path[0])
 print(os.listdir())
 change_to_current_dir()
-telhado_obj = parse('assets/Telhado-Telhado.obj')
-modelagem_obj = parse('assets/Telhado-Parede.obj')
+telhado_obj = parse('assets/M2-Telhado00.obj')
+modelagem_obj = parse('assets/M2-Paredes.obj')
 cena = []
 telhado = obj_to_triangles(telhado_obj, [217,101,78,255])
 modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
@@ -412,14 +414,14 @@ sunpath = [
 #[-0.8330, 73.97],
 #[4.18,	73.26],
 #[18.33, 70.43],
-[32.15,	65.89],
-[45.34,	58.37],
-[57.08,	44.88],
-[65.24,	19.86],
-[65.84,	344.63],
-[58.45,	317.74],
+#[32.15,	65.89],
+#[45.34,	58.37],
+#[57.08,	44.88],
+#[65.24,	19.86],
+#[65.84,	344.63],
+#[58.45,	317.74],
 [47.01,	303.09],
-[33.96,	295],
+#[33.96,	295],
 #[20.2, 290.18],
 #[6.09, 287.18],
 #[-0.833, 286.17]
