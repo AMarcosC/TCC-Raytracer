@@ -167,6 +167,14 @@ def execute_placing(i,j):
         #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
             #print(placas_locadas[a][b])
 """
+def alternate_orientation():
+    global panel_pix_x, panel_pix_y
+    temp_pix_x = panel_pix_x
+    temp_pix_y = panel_pix_y
+    panel_pix_x = temp_pix_y
+    panel_pix_y = temp_pix_x
+
+
 def placing_possible(i,j):
     #print("I atual: {}".format(i))
     #print("J atual: {}".format(j))
@@ -195,8 +203,56 @@ def execute_placing(i,j):
             #print(placas_locadas[a][b])
 
 
-
 def place_panels():
+    global placas_counter
+    x_axis = 0
+    y_axis = 0
+    for i in range(((panel_pix_y)+1), len(placas_locadas) - ((panel_pix_y)+1),1):
+        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        for j in range(((panel_pix_x)+1),len(placas_locadas[0]) - ((panel_pix_x)+1),1):
+            #print("Estamos no ponto {} {}".format(i,j))
+            if placing_possible(i,j) == True:
+                placas_counter += 1
+                execute_placing(i,j)
+                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                print("---------------------------")
+                print("Placa locada: eixo {} {}".format(i,j))
+                print("---------------------------")
+            else:   #apenas por motivos de debug
+                where_looking[i][j] = 1
+                continue
+
+
+def place_panels_alternate_orient():
+    global placas_counter
+    x_axis = 0
+    y_axis = 0
+    for i in range((maior(panel_pix_y,panel_pix_x)+1), len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1),1):
+        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        for j in range(((maior(panel_pix_y,panel_pix_x))+1),len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1),1):
+            #print("Estamos no ponto {} {}".format(i,j))
+            if placing_possible(i,j) == True:
+                placas_counter += 1
+                execute_placing(i,j)
+                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                print("---------------------------")
+                print("Placa locada: eixo {} {}".format(i,j))
+                print("---------------------------")
+            else:
+                alternate_orientation()
+                if placing_possible(i,j) == True:
+                    placas_counter += 1
+                    execute_placing(i,j)
+                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                    print("---------------------------")
+                    print("Placa locada: eixo {} {}".format(i,j))
+                    print("---------------------------")
+                alternate_orientation()
+                where_looking[i][j] = 1
+                continue
+
+
+def place_panels_aligned():
     global placas_counter, axis_lock, panel_pix_x, panel_pix_y
     x_axis = 0
     y_axis = 0
@@ -232,7 +288,7 @@ def place_panels():
                         print("---------------------------")
                         print("Placa locada: eixo {} {}".format(i,j))
                         print("---------------------------")
-                    elif abs(i-y_axis) => panel_pix_y and abs(j-x_axis) => panel_pix_x:
+                    elif abs(i-y_axis) >= panel_pix_y and abs(j-x_axis) >= panel_pix_x:
                         placas_counter += 1
                         execute_placing(i,j)
                         lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
@@ -350,7 +406,7 @@ print(area_de_interesse.shape)
 print(heatmap.shape)
 print(placas_locadas.shape)
 
-place_panels()
+place_panels_alternate_orient()
 placas_img()
 
 print(placas_locadas)
