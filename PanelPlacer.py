@@ -108,6 +108,10 @@ def placa_projection():
         placa_dimx = maior(placa_dim1, placa_dim2)
         placa_dimy = menor(placa_dim1, placa_dim2) * alpha
 
+"""
+#esta versão da função garante que o número de pixels da placa
+#será impar, importante para locar no eixo
+
 def dimention_to_pixel():
     global panel_pix_x, panel_pix_y
     temp_x = (placa_dimx//round(pix_x,4)) + 1
@@ -122,8 +126,19 @@ def dimention_to_pixel():
         panel_pix_y = int(temp_y+1)
     print("Placa terá {} px em X e {} px em Y".format(panel_pix_x,panel_pix_y))
     print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,4),panel_pix_y*round(pix_y,4)))
+"""
 
+def dimention_to_pixel():
+    global panel_pix_x, panel_pix_y
+    temp_x = (placa_dimx//round(pix_x,4)) + 1
+    temp_y = (placa_dimy//round(pix_y,4)) + 1
+    panel_pix_x = int(temp_x)
+    panel_pix_y = int(temp_y)
+    print("Placa terá {} px em X e {} px em Y".format(panel_pix_x,panel_pix_y))
+    print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,4),panel_pix_y*round(pix_y,4)))
 
+"""
+#funções que colocam as placas no eixo (dimensões ímpares em pixels)
 
 def placing_possible(i,j):
     #print("I atual: {}".format(i))
@@ -151,20 +166,81 @@ def execute_placing(i,j):
     #for a in range (i-1-(panel_pix_x//2), i+1+(panel_pix_x//2), 1):
         #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
             #print(placas_locadas[a][b])
+"""
+def placing_possible(i,j):
+    #print("I atual: {}".format(i))
+    #print("J atual: {}".format(j))
+    temp_list = []
+    for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
+        for v in range (j, j+panel_pix_x, 1):
+            if (placas_locadas[u][v] == None and
+            heatmap[u][v] == 0 #and
+            #area_de_interesse[u][v] != None
+            ):
+                temp_list.append(True)
+            else:
+                temp_list.append(False)
+    for value in temp_list:
+        if value == False:
+            return False
+    return True
+
+
+def execute_placing(i,j):
+    for u in range (i, i-panel_pix_y, -1):
+        for v in range (j, j+panel_pix_x, 1):
+            placas_locadas[u][v] = placas_counter
+    #for a in range (i-1-(panel_pix_x//2), i+1+(panel_pix_x//2), 1):
+        #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
+            #print(placas_locadas[a][b])
+
+
 
 def place_panels():
-    global placas_counter
-    for i in range(((panel_pix_y//2)+1), len(placas_locadas) - ((panel_pix_y//2)+1),1):
+    global placas_counter, axis_lock, panel_pix_x, panel_pix_y
+    x_axis = 0
+    y_axis = 0
+    for i in range(((panel_pix_y)+1), len(placas_locadas) - ((panel_pix_y)+1),1):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
-        for j in range(((panel_pix_x//2)+1),len(placas_locadas[0]) - ((panel_pix_x//2)+1),1):
+        for j in range(((panel_pix_x)+1),len(placas_locadas[0]) - ((panel_pix_x)+1),1):
             #print("Estamos no ponto {} {}".format(i,j))
-            if placing_possible(i,j) == True:
+            place_poss = placing_possible(i,j)
+            if place_poss == True and axis_lock == False:
                 placas_counter += 1
                 execute_placing(i,j)
                 lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
                 print("---------------------------")
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
+            elif place_poss == True and axis_lock == True:
+                if placas_counter == 0:
+                    placas_counter += 1
+                    execute_placing(i,j)
+                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                    x_axis = j
+                    y_axis = i
+                    print("---------------------------")
+                    print("Placa locada: eixo {} {}".format(i,j))
+                    print("---------------------------")
+                else:
+                    if i == y_axis or j == x_axis:
+                        placas_counter += 1
+                        execute_placing(i,j)
+                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                        #x_axis = j   #(pensar nessa possibilidade)
+                        #y_axis = i   #(pensar nessa possibilidade)
+                        print("---------------------------")
+                        print("Placa locada: eixo {} {}".format(i,j))
+                        print("---------------------------")
+                    elif abs(i-y_axis) => panel_pix_y and abs(j-x_axis) => panel_pix_x:
+                        placas_counter += 1
+                        execute_placing(i,j)
+                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                        #x_axis = j   #(pensar nessa possibilidade)
+                        #y_axis = i   #(pensar nessa possibilidade)
+                        print("---------------------------")
+                        print("Placa locada: eixo {} {}".format(i,j))
+                        print("---------------------------")
             else:   #apenas por motivos de debug
                 where_looking[i][j] = 1
                 continue
@@ -229,8 +305,9 @@ pix_area = None
 
 
 placa_dim1 = 1.65
-placa_dim2 = 1.00
+placa_dim2 = 1
 orient = "Hor"
+axis_lock = False
 
 placa_dimx = None
 placa_dimy = None
