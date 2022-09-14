@@ -445,42 +445,50 @@ panel_pix_y = 21
 
 
 """Inicialização"""
+#Ordem: orient, routing, axis_lock, orient_alternation
 
+cases = [
+['Hor', 'top-left', False, False],
+['Hor', 'top-right', False, False],
+['Hor', 'bottom-left', False, False],
+['Hor', 'bottom-right', False, False],
+['Vert', 'bottom-right', True, False],
+['Vert', 'bottom-right', False, True],
+]
 
 
 file_area = open('area', 'rb')
 area_de_interesse = pickle.load(file_area)
 
-pix_dim=pixel_size()
-incl = find_slope(area_de_interesse)
-
-
-placa_projection()
-print(placa_dimx, placa_dimy)
-dimention_to_pixel()
-
-print("Inclinação: {}".format(incl))
-
 file_heatmap = open('heatmap', 'rb')
 heatmap = pickle.load(file_heatmap)
 
-
-placas_locadas = np.full_like(area_de_interesse, None)
-lista_placas = []
-placas_counter = 0
-
-where_looking = np.full_like(area_de_interesse, None)
-
-
-
-print(area_de_interesse.shape)
-print(heatmap.shape)
-print(placas_locadas.shape)
-
-place_panels()
-placas_img()
-
-print(placas_locadas)
-area_de_interesse_img()
-where_looking_img()
-overlay_images('output/Placas_{}_orient-{}_{}placas.png'.format(routing, orient, placas_counter), 'output/Heatmap.png','output/placas_overlay.png')
+for case in cases:
+    print("-------------------------")
+    print("----Iniciando caso {}----".format(cases.index(case)))
+    print("-------------------------")
+    orient = case[0]
+    routing = case[1]
+    axis_lock = case[2]
+    orient_alternation = case[3]
+    pix_dim=pixel_size()
+    incl = find_slope(area_de_interesse)
+    placa_projection()
+    print(placa_dimx, placa_dimy)
+    dimention_to_pixel()
+    print("Inclinação: {}".format(incl))
+    placas_locadas = np.full_like(area_de_interesse, None)
+    lista_placas = []
+    placas_counter = 0
+    if axis_lock == True and orient_alternation = False:
+        place_panels_aligned()
+    elif axis_lock == False and orient_alternation = True:
+        place_panels_alternate_orient()
+    elif axis_lock == True and orient_alternation = True:
+        print("Não há função para este caso!")
+        place_panels()
+    else:
+        place_panels()
+    placas_img()
+    print(placas_locadas)
+    overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(cases.index(case), routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
