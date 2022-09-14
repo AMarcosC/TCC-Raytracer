@@ -463,6 +463,7 @@ area_de_interesse = pickle.load(file_area)
 file_heatmap = open('heatmap', 'rb')
 heatmap = pickle.load(file_heatmap)
 
+#execução de todos os casos
 for case in cases:
     print("-------------------------")
     print("----Iniciando caso {}----".format(cases.index(case)))
