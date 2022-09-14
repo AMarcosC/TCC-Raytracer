@@ -286,7 +286,6 @@ def place_panels():
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
             else:   #apenas por motivos de debug
-                where_looking[i][j] = 1
                 continue
 
 
@@ -316,7 +315,6 @@ def place_panels_alternate_orient():
                     print("Placa locada: eixo {} {}".format(i,j))
                     print("---------------------------")
                 alternate_orientation()
-                where_looking[i][j] = 1
                 continue
 
 
@@ -367,7 +365,6 @@ def place_panels_aligned():
                         print("Placa locada: eixo {} {}".format(i,j))
                         print("---------------------------")
             else:   #apenas por motivos de debug
-                where_looking[i][j] = 1
                 continue
 
 def return_placa_color(ident):
@@ -375,7 +372,7 @@ def return_placa_color(ident):
         if placa.id == ident:
             return placa.color
 
-def placas_img():
+def placas_img(c_index):
     soma = placas_locadas
     img = []
     for i in soma:
@@ -387,7 +384,7 @@ def placas_img():
                 line.append([255,255,255,0])
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
-    img1.save('output/Placas_{}_orient-{}_{}placas.png'.format(routing, orient, placas_counter))
+    img1.save('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
     return soma
 
 
@@ -465,6 +462,7 @@ heatmap = pickle.load(file_heatmap)
 
 #execução de todos os casos
 for case in cases:
+    case_index = cases.index(case)
     print("-------------------------")
     print("----Iniciando caso {}----".format(cases.index(case)))
     print("-------------------------")
@@ -481,15 +479,15 @@ for case in cases:
     placas_locadas = np.full_like(area_de_interesse, None)
     lista_placas = []
     placas_counter = 0
-    if axis_lock == True and orient_alternation = False:
+    if axis_lock == True and orient_alternation == False:
         place_panels_aligned()
-    elif axis_lock == False and orient_alternation = True:
+    elif axis_lock == False and orient_alternation == True:
         place_panels_alternate_orient()
-    elif axis_lock == True and orient_alternation = True:
+    elif axis_lock == True and orient_alternation == True:
         print("Não há função para este caso!")
         place_panels()
     else:
         place_panels()
-    placas_img()
+    placas_img(case_index)
     print(placas_locadas)
-    overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(cases.index(case), routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+    overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
