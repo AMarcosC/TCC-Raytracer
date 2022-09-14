@@ -174,6 +174,73 @@ def alternate_orientation():
     panel_pix_x = temp_pix_y
     panel_pix_y = temp_pix_x
 
+def routing_sequence():
+    global routing, orient_alternation
+    if routing == "top-left" and orient_alternation == False:
+        begin_i = (panel_pix_y)+1
+        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        step_i = 1
+        begin_j = (panel_pix_x)+1
+        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "top-left" and orient_alternation == True:
+        begin_i = (maior(panel_pix_y,panel_pix_x)+1)
+        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_i = 1
+        begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "bottom-left" and orient_alternation == False:
+        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = (panel_pix_y)+1
+        step_i = -1
+        begin_j = (panel_pix_x)+1
+        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "bottom-left" and orient_alternation == True:
+        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = (maior(panel_pix_y,panel_pix_x)+1)
+        step_i = -1
+        begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "top-right" and orient_alternation == False:
+        begin_i = (panel_pix_y)+1
+        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        step_i = 1
+        begin_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        end_j = (panel_pix_x+1)
+        step_j = -1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "top-right" and orient_alternation == True:
+        begin_i = (maior(panel_pix_y,panel_pix_x)+1)
+        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_i = 1
+        begin_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = (maior(panel_pix_y,panel_pix_x)+1)
+        step_j = -1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "bottom-right" and orient_alternation == False:
+        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = (panel_pix_y)+1
+        step_i = -1
+        begin_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        end_j = (panel_pix_x+1)
+        step_j = -1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "bottom-right" and orient_alternation == True:
+        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = (maior(panel_pix_y,panel_pix_x)+1)
+        step_i = -1
+        begin_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = (maior(panel_pix_y,panel_pix_x)+1)
+        step_j = -1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+
 
 def placing_possible(i,j):
     #print("I atual: {}".format(i))
@@ -205,11 +272,11 @@ def execute_placing(i,j):
 
 def place_panels():
     global placas_counter
-    x_axis = 0
-    y_axis = 0
-    for i in range(((panel_pix_y)+1), len(placas_locadas) - ((panel_pix_y)+1),1):
+    index = routing_sequence()
+    print(index)
+    for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
-        for j in range(((panel_pix_x)+1),len(placas_locadas[0]) - ((panel_pix_x)+1),1):
+        for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
                 placas_counter += 1
@@ -225,11 +292,12 @@ def place_panels():
 
 def place_panels_alternate_orient():
     global placas_counter
+    index = routing_sequence()
     x_axis = 0
     y_axis = 0
-    for i in range((maior(panel_pix_y,panel_pix_x)+1), len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1),1):
+    for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
-        for j in range(((maior(panel_pix_y,panel_pix_x))+1),len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1),1):
+        for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
                 placas_counter += 1
@@ -254,11 +322,12 @@ def place_panels_alternate_orient():
 
 def place_panels_aligned():
     global placas_counter, axis_lock, panel_pix_x, panel_pix_y
+    index = routing_sequence()
     x_axis = 0
     y_axis = 0
-    for i in range(((panel_pix_y)+1), len(placas_locadas) - ((panel_pix_y)+1),1):
+    for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
-        for j in range(((panel_pix_x)+1),len(placas_locadas[0]) - ((panel_pix_x)+1),1):
+        for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             place_poss = placing_possible(i,j)
             if place_poss == True and axis_lock == False:
@@ -318,7 +387,7 @@ def placas_img():
                 line.append([255,255,255,0])
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
-    img1.save('output/Placas.png')
+    img1.save('output/Placas_{}_orient-{}_{}placas.png'.format(routing, orient, placas_counter))
     return soma
 
 
@@ -363,7 +432,9 @@ pix_area = None
 placa_dim1 = 1.65
 placa_dim2 = 1
 orient = "Hor"
+routing = "bottom-right"
 axis_lock = False
+orient_alternation = False
 
 placa_dimx = None
 placa_dimy = None
@@ -406,10 +477,10 @@ print(area_de_interesse.shape)
 print(heatmap.shape)
 print(placas_locadas.shape)
 
-place_panels_alternate_orient()
+place_panels()
 placas_img()
 
 print(placas_locadas)
 area_de_interesse_img()
 where_looking_img()
-overlay_images('output/Placas.png', 'output/Heatmap.png','output/placas_overlay.png')
+overlay_images('output/Placas_{}_orient-{}_{}placas.png'.format(routing, orient, placas_counter), 'output/Heatmap.png','output/placas_overlay.png')
