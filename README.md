@@ -25,13 +25,24 @@ no TCC 01:
 
 Os arquivos soltos na pasta raíz do repositório, como também as pastas *teste*, *assets* e *output*, são as versões que estão sendo constantemente modificadas.
 
+A execução de "PanelPlacer.py" pode resultar em erros, visto que esta versão ainda não tem nenhum exemplo fixo para testes.
+
 
 ## Recursos adicionados recentemente
 
 - Alterar a área de alcance da tela baseado no tamanho do modelo tridimensional (tornar a tela maior ou menor, ou reposicionar a tela, de forma que todo o modelo apareça nas imagens, mas que também não fique pequeno);
 - Placas multicoloridas (cor escolhida aleatoriamente).
+- Mudança de orientação ao longo da varredura: o programa tem prioridade para inserir placas horizontalmente, mas se em algum lugar ele só conseguir colocar placas verticalmente, ele insere, a depender do desejo do usuário
+- Varredura da imagem pode começar pelos quatro cantos da imagem (top-left, bottom-left, top-right, bottom-right)
+- Placas podem ser inseridas com alinhamento relativo à primeira placa inserida (necessita de melhorias: resultados não são os esperados e o processamento aumenta em cerca de 2.5x)
 
 ## Melhorias Pendentes
 
 - Aplicar Multiprocessamento e/ou uso da GPU no processamento do traçado de raios;
 - Processar o ray-tracing apenas na área de interesse, agilizando o código.
+- Correção das dimensões reais da placa ao mudar a orientação durante a locação
+- Produzir arquivo com as coordenadas das placas para inserir no AutoCAD, por exemplo
+
+## Última imagem produzida pelo programa
+
+! [Ultima imagem](output/placas_overlay.png)
