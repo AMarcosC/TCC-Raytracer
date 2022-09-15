@@ -24,10 +24,11 @@ Próximos passos:
 
 
 class Placa:  #classse que define as propriedades de um objeto genérico qualquer
-    def __init__(self, id, coord):
+    def __init__(self, id, coord, edges):
         self.id = id
         self.color = random_color()
         self.coord = coord
+        self.edges = edges
 
 
 """Funções"""
@@ -265,13 +266,17 @@ def execute_placing(i,j):
     for u in range (i, i-panel_pix_y, -1):
         for v in range (j, j+panel_pix_x, 1):
             placas_locadas[u][v] = placas_counter
-    #for a in range (i-1-(panel_pix_x//2), i+1+(panel_pix_x//2), 1):
-        #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
-            #print(placas_locadas[a][b])
+
+def panel_edge_pixels(i,j):
+    t_l = [j, i-panel_pix_y+1]
+    t_r = [j+panel_pix_x-1, i-panel_pix_y+1]
+    b_l = [j, i]
+    b_r = [j+panel_pix_x-1, i]
+    return [t_l, t_r, b_l, b_r]
 
 
 def place_panels():
-    global placas_counter
+    global placas_counter, lista_placas
     index = routing_sequence()
     print(index)
     for i in range(index[0][0], index[0][1], index[0][2]):
@@ -281,7 +286,7 @@ def place_panels():
             if placing_possible(i,j) == True:
                 placas_counter += 1
                 execute_placing(i,j)
-                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                 print("---------------------------")
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
@@ -290,7 +295,7 @@ def place_panels():
 
 
 def place_panels_alternate_orient():
-    global placas_counter
+    global placas_counter, lista_placas
     index = routing_sequence()
     x_axis = 0
     y_axis = 0
@@ -301,7 +306,7 @@ def place_panels_alternate_orient():
             if placing_possible(i,j) == True:
                 placas_counter += 1
                 execute_placing(i,j)
-                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                 print("---------------------------")
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
@@ -310,7 +315,7 @@ def place_panels_alternate_orient():
                 if placing_possible(i,j) == True:
                     placas_counter += 1
                     execute_placing(i,j)
-                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                     print("---------------------------")
                     print("Placa locada: eixo {} {}".format(i,j))
                     print("---------------------------")
@@ -319,7 +324,7 @@ def place_panels_alternate_orient():
 
 
 def place_panels_aligned():
-    global placas_counter, axis_lock, panel_pix_x, panel_pix_y
+    global placas_counter, axis_lock, panel_pix_x, panel_pix_y, lista_placas
     index = routing_sequence()
     x_axis = 0
     y_axis = 0
@@ -331,7 +336,7 @@ def place_panels_aligned():
             if place_poss == True and axis_lock == False:
                 placas_counter += 1
                 execute_placing(i,j)
-                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                 print("---------------------------")
                 print("Placa locada: eixo {} {}".format(i,j))
                 print("---------------------------")
@@ -339,7 +344,7 @@ def place_panels_aligned():
                 if placas_counter == 0:
                     placas_counter += 1
                     execute_placing(i,j)
-                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                     x_axis = j
                     y_axis = i
                     print("---------------------------")
@@ -349,7 +354,7 @@ def place_panels_aligned():
                     if i == y_axis or j == x_axis:
                         placas_counter += 1
                         execute_placing(i,j)
-                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                         #x_axis = j   #(pensar nessa possibilidade)
                         #y_axis = i   #(pensar nessa possibilidade)
                         print("---------------------------")
@@ -358,7 +363,7 @@ def place_panels_aligned():
                     elif abs(i-y_axis) >= panel_pix_y and abs(j-x_axis) >= panel_pix_x:
                         placas_counter += 1
                         execute_placing(i,j)
-                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j]))
+                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
                         #x_axis = j   #(pensar nessa possibilidade)
                         #y_axis = i   #(pensar nessa possibilidade)
                         print("---------------------------")
@@ -420,6 +425,16 @@ def where_looking_img():  #apenas para debug
     return soma
 
 
+def print_placas():  #para debug
+    global lista_placas
+    print("------ Listagem das Placas ------")
+    for placa in lista_placas:
+        print("---- Placa {} ----".format(placa.id))
+        print("Coordenada: {}".format(placa.coord))
+        print("Bordas em px: {}".format(placa.edges))
+    print("---------------------------------")
+
+
 """Variáveis Globais"""
 pix_x = None
 pix_y = None
@@ -445,14 +460,16 @@ panel_pix_y = 21
 #Ordem: orient, routing, axis_lock, orient_alternation
 
 cases = [
-['Hor', 'top-left', False, False],
-['Hor', 'top-right', False, False],
-['Hor', 'bottom-left', False, False],
-['Hor', 'bottom-right', False, False],
-['Vert', 'bottom-right', True, False],
+#['Hor', 'top-left', False, False],
+#['Hor', 'top-right', False, False],
+#['Hor', 'bottom-left', False, False],
+#['Hor', 'bottom-right', False, False],
+#['Vert', 'bottom-right', True, False],
 ['Vert', 'bottom-right', False, True],
 ]
 
+lista_placas = []
+placas_counter = 0
 
 file_area = open('area', 'rb')
 area_de_interesse = pickle.load(file_area)
@@ -477,8 +494,6 @@ for case in cases:
     dimention_to_pixel()
     print("Inclinação: {}".format(incl))
     placas_locadas = np.full_like(area_de_interesse, None)
-    lista_placas = []
-    placas_counter = 0
     if axis_lock == True and orient_alternation == False:
         place_panels_aligned()
     elif axis_lock == False and orient_alternation == True:
@@ -491,3 +506,5 @@ for case in cases:
     placas_img(case_index)
     print(placas_locadas)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+
+print_placas()
