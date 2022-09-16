@@ -29,6 +29,7 @@ class Placa:  #classse que define as propriedades de um objeto genérico qualque
         self.color = random_color()
         self.coord = coord
         self.edges = edges
+        self.closest_shadow = None
 
 
 """Funções"""
@@ -244,8 +245,6 @@ def routing_sequence():
 
 
 def placing_possible(i,j):
-    #print("I atual: {}".format(i))
-    #print("J atual: {}".format(j))
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
@@ -430,9 +429,77 @@ def print_placas():  #para debug
     print("------ Listagem das Placas ------")
     for placa in lista_placas:
         print("---- Placa {} ----".format(placa.id))
-        print("Coordenada: {}".format(placa.coord))
+        print("Coordenada: x:{} y:{} z:{}".format(placa.coord.x, placa.coord.y, placa.coord.z))
         print("Bordas em px: {}".format(placa.edges))
+        print("Maior distância acima: {} m".format(placa.closest_shadow[0]))
+        print("Maior distância abaixo: {} m".format(placa.closest_shadow[1]))
+        print("Maior distância à esquerda: {} m".format(placa.closest_shadow[2]))
+        print("Maior distância à direita: {} m".format(placa.closest_shadow[3]))
     print("---------------------------------")
+
+def get_closest_shadows(value):
+    global lista_placas, pix_x, pix_y
+    for placa in lista_placas:
+        edges = placa.edges
+        upper = 0
+        lower = 0
+        left = 0
+        right = 0
+        #investigando da borda superior para cima
+        print("Investigando a placa {}".format(placa.id))
+        pix_upper = 0
+        for i in range (edges[0][0], edges[1][0]+1, 1):
+            temp_index = edges[0][1] - 1
+            while (
+            area_de_interesse[i][temp_index] != None and
+            heatmap[i][temp_index] <= value and
+            placas_locadas[i][temp_index] == None
+            ):
+                temp_index += -1
+            if abs(edges[0][1] - temp_index) > pix_upper:
+                pix_upper = abs(edges[0][1] - temp_index)
+        upper = pix_upper*pix_y
+        #investigando da borda inferior para baixo
+        pix_lower = 0
+        for j in range (edges[2][0], edges[3][0]+1, 1):
+            temp_index = edges[2][1] + 1
+            while (
+            area_de_interesse[j][temp_index] != None and
+            heatmap[j][temp_index] <= value and
+            placas_locadas[j][temp_index] == None
+            ):
+                temp_index += 1
+            if abs(edges[2][1] - temp_index) > pix_lower:
+                pix_lower = abs(edges[2][1] - temp_index)
+        lower = pix_lower*pix_y
+        #investigando da borda esquerda para a esquerda
+        pix_left = 0
+        for u in range (edges[0][1], edges[2][1]+1, 1):
+            temp_index = edges[0][0] - 1
+            while (
+            area_de_interesse[temp_index][u] != None and
+            heatmap[temp_index][u] <= value and
+            placas_locadas[temp_index][u] == None
+            ):
+                temp_index += -1
+            if abs(edges[0][0] - temp_index) > pix_left:
+                pix_left = abs(edges[0][0] - temp_index)
+        left = pix_left*pix_y
+        #investigando da borda direita para a direita
+        pix_right = 0
+        for v in range (edges[1][1], edges[3][1]+1, 1):
+            temp_index = edges[1][0] + 1
+            while (
+            area_de_interesse[temp_index][v] != None and
+            heatmap[temp_index][v] <= value and
+            placas_locadas[temp_index][v] == None
+            ):
+                temp_index += 1
+            if abs(edges[1][0] - temp_index) > pix_right:
+                pix_right = abs(edges[1][0] - temp_index)
+        right = pix_right*pix_y
+        placa.closest_shadow = [upper, lower, left, right]
+
 
 
 """Variáveis Globais"""
@@ -463,9 +530,9 @@ cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
 #['Hor', 'bottom-left', False, False],
-#['Hor', 'bottom-right', False, False],
+['Vert', 'bottom-right', False, False],
 #['Vert', 'bottom-right', True, False],
-['Vert', 'bottom-right', False, True],
+#['Vert', 'bottom-right', False, True],
 ]
 
 lista_placas = []
@@ -504,7 +571,10 @@ for case in cases:
     else:
         place_panels()
     placas_img(case_index)
-    print(placas_locadas)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+    get_closest_shadows(0)
+
 
 print_placas()
+
+python_array_to_pickle(lista_placas, 'lista_placas')
