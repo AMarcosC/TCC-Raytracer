@@ -388,8 +388,8 @@ tri3 = Triangle(vec3(-60,45,-25), vec3(60,45,-25), vec3(60,-45,-25), [255, 255, 
 os.chdir(sys.path[0])
 print(os.listdir())
 change_to_current_dir()
-telhado_obj = parse('assets/M2-Telhado00.obj')
-modelagem_obj = parse('assets/M2-Paredes.obj')
+telhado_obj = parse('assets/MV02-Telhado.obj')
+modelagem_obj = parse('assets/MV02-Paredes.obj')
 cena = []
 telhado = obj_to_triangles(telhado_obj, [217,101,78,255])
 modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
@@ -411,20 +411,20 @@ eps = 0.00025  #uma distância para afastar o ponto do próprio objeto
 
 #fonte: https://www.sunearthtools.com/dp/tools/pos_sun.php?lang=pt
 sunpath = [
-#[-0.8330, 73.97],
-#[4.18,	73.26],
-#[18.33, 70.43],
-[32.15,	65.89],
-[45.34,	58.37],
-[57.08,	44.88],
-[65.24,	19.86],
-[65.84,	344.63],
-[58.45,	317.74],
-[47.01,	303.09],
-[33.96,	295],
-#[20.2, 290.18],
-#[6.09, 287.18],
-#[-0.833, 286.17]
+#[-0.833, 89.05],  #05:27:54
+#[7.12,	88.04],   #6:00:00
+#[21.99,	85.96],   #7:00:00
+[36.81,	83.29],   #8:00:00
+[51.53,	79.21],   #9:00:00
+[65.95,	71],      #10:00:00
+[78.81,	43.42],   #11:00:00
+[79.04,	317.8],   #12:00:00
+[66.27,	289.17],  #13:00:00
+[51.87,	280.78],  #14:00:00
+[37.16,	276.64],  #15:00:00
+[22.34,	273.93],  #16:00:00
+[7.48, 271.82],   #17:00:00
+[-0.833, 270.75]  #17:33:30
 ]
 
 """Inicialização"""
@@ -453,12 +453,6 @@ print(heatmap_somado)
 
 python_array_to_pickle(heatmap_somado, 'heatmap')
 python_array_to_pickle(area_de_interesse, 'area')
-
-create_shape(1)
-shape_csv = np.asarray(shape_points)
-print(shape_csv)
-np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
-#shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
 
 
 print("---------------Terminou-------------------")
