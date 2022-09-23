@@ -30,18 +30,20 @@ A execução de "PanelPlacer.py" pode resultar em erros, visto que esta versão 
 
 ## Recursos adicionados recentemente
 
-- Alterar a área de alcance da tela baseado no tamanho do modelo tridimensional (tornar a tela maior ou menor, ou reposicionar a tela, de forma que todo o modelo apareça nas imagens, mas que também não fique pequeno);
-- Placas multicoloridas (cor escolhida aleatoriamente).
-- Mudança de orientação ao longo da varredura: o programa tem prioridade para inserir placas horizontalmente, mas se em algum lugar ele só conseguir colocar placas verticalmente, ele insere, a depender do desejo do usuário
-- Varredura da imagem pode começar pelos quatro cantos da imagem (top-left, bottom-left, top-right, bottom-right)
-- Placas podem ser inseridas com alinhamento relativo à primeira placa inserida (necessita de melhorias: resultados não são os esperados e o processamento aumenta em cerca de 2.5x)
+- Alterar a área de alcance da tela baseado no tamanho do modelo tridimensional (tornar a tela maior ou menor, ou reposicionar a tela, de forma que todo o modelo apareça nas imagens, mas que também não fique pequeno) (carece de melhorias);
+- Placas multicoloridas (cor escolhida aleatoriamente);
+- Mudança de orientação ao longo da varredura: o programa tem prioridade para inserir placas horizontalmente, mas se em algum lugar ele só conseguir colocar placas verticalmente, ele insere, a depender do desejo do usuário, e vice-versa;
+- Varredura da imagem pode começar pelos quatro cantos da imagem (top-left, bottom-left, top-right, bottom-right);
+- Placas podem ser inseridas com alinhamento relativo à primeira placa inserida (trata-se de outro conceito, mais promissor que a tentativa anterior);
+- Inserção de placas na região sombreada, na melhor posição possível (placas passam a ter um "score" que determina a melhor posição).
 
 ## Melhorias Pendentes
 
 - Aplicar Multiprocessamento e/ou uso da GPU no processamento do traçado de raios;
-- Processar o ray-tracing apenas na área de interesse, agilizando o código.
-- Correção das dimensões reais da placa ao mudar a orientação durante a locação
-- Produzir arquivo com as coordenadas das placas para inserir no AutoCAD, por exemplo
+- Processar o ray-tracing apenas na área de interesse, agilizando o código;
+- Correção das dimensões reais da placa ao mudar a orientação durante a locação;
+- Produzir arquivo com as coordenadas das placas para inserir no AutoCAD, por exemplo;
+- Classificar o resultado por um grau de compacidade, relativo a quantidade de áreas livres e seus valores.
 
 ## Última imagem produzida pelo programa
 
