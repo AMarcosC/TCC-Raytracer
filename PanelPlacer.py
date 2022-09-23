@@ -24,12 +24,13 @@ Próximos passos:
 
 
 class Placa:  #classse que define as propriedades de um objeto genérico qualquer
-    def __init__(self, id, coord, edges):
+    def __init__(self, id, coord, edges, score):
         self.id = id
         self.color = random_color()
         self.coord = coord
         self.edges = edges
         self.closest_shadow = None
+        self.score = score
 
 
 """Funções"""
@@ -277,10 +278,17 @@ def placing_possible_in_shadow(i,j):
     return True
 
 
-def execute_placing(i,j):
+def execute_placing(i,j,score):
+    global lista_placas, placas_counter
+    placas_counter += 1
     for u in range (i, i-panel_pix_y, -1):
         for v in range (j, j+panel_pix_x, 1):
             placas_locadas[u][v] = placas_counter
+    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j), score))
+    print("---------------------------")
+    print("Placa locada: eixo {} {}".format(i,j))
+    print("---------------------------")
+
 
 def panel_edge_pixels(i,j):
     t_l = [j, i-panel_pix_y+1]
@@ -298,12 +306,7 @@ def place_panels():
         for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
-                placas_counter += 1
-                execute_placing(i,j)
-                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
-                print("---------------------------")
-                print("Placa locada: eixo {} {}".format(i,j))
-                print("---------------------------")
+                execute_placing(i,j,1.0)
             else:   #apenas por motivos de debug
                 continue
 
@@ -318,26 +321,16 @@ def place_panels_alternate_orient():
         for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
-                placas_counter += 1
-                execute_placing(i,j)
-                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
-                print("---------------------------")
-                print("Placa locada: eixo {} {}".format(i,j))
-                print("---------------------------")
+                execute_placing(i,j,1.0)
             else:
                 alternate_orientation()
                 if placing_possible(i,j) == True:
-                    placas_counter += 1
-                    execute_placing(i,j)
-                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
-                    print("---------------------------")
-                    print("Placa locada: eixo {} {}".format(i,j))
-                    print("---------------------------")
+                    execute_placing(i,j,1.0)
                 alternate_orientation()
                 continue
 
 
-def place_panels_aligned():
+def place_panels_aligned():  #será substituída
     global placas_counter, axis_lock, panel_pix_x, panel_pix_y, lista_placas
     index = routing_sequence()
     x_axis = 0
@@ -348,43 +341,105 @@ def place_panels_aligned():
             #print("Estamos no ponto {} {}".format(i,j))
             place_poss = placing_possible(i,j)
             if place_poss == True and axis_lock == False:
-                placas_counter += 1
-                execute_placing(i,j)
-                lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
-                print("---------------------------")
-                print("Placa locada: eixo {} {}".format(i,j))
-                print("---------------------------")
+                execute_placing(i,j,1.0)
             elif place_poss == True and axis_lock == True:
                 if placas_counter == 0:
-                    placas_counter += 1
-                    execute_placing(i,j)
-                    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
+                    execute_placing(i,j,1.0)
                     x_axis = j
                     y_axis = i
-                    print("---------------------------")
-                    print("Placa locada: eixo {} {}".format(i,j))
-                    print("---------------------------")
                 else:
                     if i == y_axis or j == x_axis:
-                        placas_counter += 1
-                        execute_placing(i,j)
-                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
+                        execute_placing(i,j,1.0)
                         #x_axis = j   #(pensar nessa possibilidade)
                         #y_axis = i   #(pensar nessa possibilidade)
-                        print("---------------------------")
-                        print("Placa locada: eixo {} {}".format(i,j))
-                        print("---------------------------")
                     elif abs(i-y_axis) >= panel_pix_y and abs(j-x_axis) >= panel_pix_x:
-                        placas_counter += 1
-                        execute_placing(i,j)
-                        lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j)))
+                        execute_placing(i,j,1.0)
                         #x_axis = j   #(pensar nessa possibilidade)
                         #y_axis = i   #(pensar nessa possibilidade)
-                        print("---------------------------")
-                        print("Placa locada: eixo {} {}".format(i,j))
-                        print("---------------------------")
             else:   #apenas por motivos de debug
                 continue
+
+
+def place_panels_in_grid(case):
+    global placas_counter, panel_pix_x, panel_pix_y, lista_placas, needed_placas
+    grid = return_all_grid_points(case)
+    grid_filter = []
+    grid_optimum = []
+    for p in grid:
+        if placing_possible_in_shadow(p[1], p[0]) == True:
+            p[2] = panel_score(p[1], p[0])
+            if p[2] > 0.999:
+                grid_optimum.append(p)
+            else:
+                grid_filter.append(p)
+    print(grid_filter)
+    for i in range(0, len(grid_optimum), 1):
+        if placas_counter < needed_placas:
+            execute_placing(grid_optimum[i][1], grid_optimum[i][0], grid_optimum[i][2])
+    while placas_counter < needed_placas:
+        p_sha = highest_score_position(grid_filter)
+        execute_placing(p_sha[1], p_sha[0], p_sha[2])
+        del grid_filter[p_sha[3]]
+
+
+
+
+def all_grid_points(i,j,case):
+    print(case)
+    global panel_pix_x, panel_pix_y, heatmap
+    temp_x_less = j
+    temp_x_plus = j + panel_pix_x
+    temp_y_less = i
+    temp_y_plus = i + panel_pix_y
+    x_list = []
+    y_list = []
+    coord = []
+    while temp_x_less >= 0:
+        x_list.append(temp_x_less)
+        temp_x_less += -panel_pix_x
+    while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
+        x_list.append(temp_x_plus)
+        temp_x_plus += panel_pix_x
+    while temp_y_less >= panel_pix_x:  #verificar
+        y_list.append(temp_y_less)
+        temp_y_less += -panel_pix_y
+    while temp_y_plus <= len(heatmap)-1:
+        y_list.append(temp_y_plus)
+        temp_y_plus += panel_pix_y
+    if case == 'top-left':
+        x_list.sort()
+        y_list.sort()
+        for y in y_list:
+            for x in x_list:
+                coord.append([x, y, 0])
+    elif case == 'top-right':
+        x_list.sort(reverse=True)
+        y_list.sort()
+        for y in y_list:
+            for x in x_list:
+                coord.append([x, y, 0])
+    elif case == "bottom-right":
+        x_list.sort(reverse=True)
+        y_list.sort(reverse=True)
+        for y in y_list:
+            for x in x_list:
+                coord.append([x, y, 0])
+    elif case == "bottom-left":
+        x_list.sort()
+        y_list.sort(reverse=True)
+        for y in y_list:
+            for x in x_list:
+                coord.append([x, y, 0])
+    return coord
+
+def return_all_grid_points(case):
+    index = routing_sequence()
+    for i in range(index[0][0], index[0][1], index[0][2]):
+        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        for j in range(index[1][0], index[1][1], index[1][2]):
+            if placing_possible(i,j) == True:
+                return all_grid_points(i,j,case)
+
 
 def return_placa_color(ident):
     for placa in lista_placas:
@@ -446,10 +501,7 @@ def print_placas():  #para debug
         print("---- Placa {} ----".format(placa.id))
         print("Coordenada: x:{} y:{} z:{}".format(placa.coord.x, placa.coord.y, placa.coord.z))
         print("Bordas em px: {}".format(placa.edges))
-        print("Maior distância acima: {} m".format(placa.closest_shadow[0]))
-        print("Maior distância abaixo: {} m".format(placa.closest_shadow[1]))
-        print("Maior distância à esquerda: {} m".format(placa.closest_shadow[2]))
-        print("Maior distância à direita: {} m".format(placa.closest_shadow[3]))
+        print("Score: {}".format(placa.score))
     print("---------------------------------")
 
 def get_closest_shadows(value):   #problemática, não será mais o foco
@@ -541,13 +593,21 @@ def best_placing():
                     cbp = [i, j]
                 elif temp_score == best_score:
                     print("Empate!")
-    placas_counter += 1
-    execute_placing(cbp[0],cbp[1])
-    lista_placas.append(Placa(placas_counter, area_de_interesse[cbp[0]][cbp[1]], panel_edge_pixels(cbp[0],cbp[1])))
-    print("---------------------------")
-    print("Placa locada: eixo {} {}".format(cbp[1],cbp[1]))
-    print("---------------------------")
+    execute_placing(cbp[0],cbp[1], best_score)
 
+
+def highest_score_position(grid_list):
+    temp_score = -1
+    temp_x = 0
+    temp_y = 0
+    temp_index = 0
+    for i in range(0, len(grid_list), 1):
+        if grid_list[i][2] > temp_score:
+            temp_score = grid_list[i][2]
+            temp_x = grid_list[i][0]
+            temp_y = grid_list[i][1]
+            temp_index = i
+    return [temp_x, temp_y, temp_score, temp_index]
 
 
 """Variáveis Globais"""
@@ -577,8 +637,8 @@ panel_pix_y = 21
 cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
-#['Hor', 'bottom-left', False, False],
-['Vert', 'bottom-right', False, False],
+['Hor', 'bottom-left', False, False],
+#['Vert', 'bottom-right', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
 ]
@@ -593,6 +653,8 @@ file_heatmap = open('heatmap', 'rb')
 heatmap = pickle.load(file_heatmap)
 highest_sha_value = highest_value_in_array(heatmap)
 print("O maior valor de sombreamento é {}".format(highest_sha_value))
+"""
+Proposta 01
 
 #execução de todos os casos
 for case in cases:
@@ -624,8 +686,28 @@ for case in cases:
         best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+"""
 
+for case in cases:
+    case_index = cases.index(case)
+    print("-------------------------")
+    print("----Iniciando caso {}----".format(cases.index(case)))
+    print("-------------------------")
+    orient = case[0]
+    routing = case[1]
+    axis_lock = case[2]
+    orient_alternation = case[3]
+    pix_dim=pixel_size()
+    incl = find_slope(area_de_interesse)
+    placa_projection()
+    print(placa_dimx, placa_dimy)
+    dimention_to_pixel()
+    print("Inclinação: {}".format(incl))
+    placas_locadas = np.full_like(area_de_interesse, None)
+    place_panels_in_grid(routing)
+    placas_img(case_index)
+    overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
 
-#print_placas()
+print_placas()
 
 python_array_to_pickle(lista_placas, 'lista_placas')
