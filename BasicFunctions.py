@@ -168,3 +168,11 @@ def impar(x):
         return True
     else:
         return False
+
+def highest_value_in_array(array):
+    temp_highest = 0
+    for line in array:
+        for number in line:
+            if number > temp_highest:
+                temp_highest = number
+    return temp_highest        

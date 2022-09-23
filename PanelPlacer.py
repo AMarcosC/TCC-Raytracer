@@ -244,13 +244,29 @@ def routing_sequence():
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
 
 
-def placing_possible(i,j):
+def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de baixo
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
             if (placas_locadas[u][v] == None and
             heatmap[u][v] == 0 #and
             #area_de_interesse[u][v] != None
+            ):
+                temp_list.append(True)
+            else:
+                temp_list.append(False)
+    for value in temp_list:
+        if value == False:
+            return False
+    return True
+
+def placing_possible_in_shadow(i,j):
+    temp_list = []
+    for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
+        for v in range (j, j+panel_pix_x, 1):
+            if (placas_locadas[u][v] == None and
+            #heatmap[u][v] == 0 #and
+            area_de_interesse[u][v] != None
             ):
                 temp_list.append(True)
             else:
@@ -277,7 +293,6 @@ def panel_edge_pixels(i,j):
 def place_panels():
     global placas_counter, lista_placas
     index = routing_sequence()
-    print(index)
     for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
         for j in range(index[1][0], index[1][1], index[1][2]):
@@ -437,7 +452,7 @@ def print_placas():  #para debug
         print("Maior distância à direita: {} m".format(placa.closest_shadow[3]))
     print("---------------------------------")
 
-def get_closest_shadows(value):
+def get_closest_shadows(value):   #problemática, não será mais o foco
     global lista_placas, pix_x, pix_y
     for placa in lista_placas:
         edges = placa.edges
@@ -501,13 +516,46 @@ def get_closest_shadows(value):
         placa.closest_shadow = [upper, lower, left, right]
 
 
+def panel_score(i, j):
+    global highest_sha_value, panel_pix_x, panel_pix_y
+    cumulative_value = 0
+    for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
+        for v in range (j, j+panel_pix_x, 1):
+            cumulative_value += (highest_sha_value - heatmap[u][v])
+    print(cumulative_value / (highest_sha_value*panel_pix_x*panel_pix_y))
+    return (cumulative_value / (highest_sha_value*panel_pix_x*panel_pix_y))
+
+def best_placing():
+    global placas_counter, lista_placas
+    index = routing_sequence()
+    best_score = 0
+    cbp = [0, 0]  #current best place
+    for i in range(index[0][0], index[0][1], index[0][2]):
+        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        for j in range(index[1][0], index[1][1], index[1][2]):
+            #print("Estamos no ponto {} {}".format(i,j))
+            if placing_possible_in_shadow(i,j) == True:
+                temp_score = panel_score(i,j)
+                if temp_score > best_score:
+                    best_score = temp_score
+                    cbp = [i, j]
+                elif temp_score == best_score:
+                    print("Empate!")
+    placas_counter += 1
+    execute_placing(cbp[0],cbp[1])
+    lista_placas.append(Placa(placas_counter, area_de_interesse[cbp[0]][cbp[1]], panel_edge_pixels(cbp[0],cbp[1])))
+    print("---------------------------")
+    print("Placa locada: eixo {} {}".format(cbp[1],cbp[1]))
+    print("---------------------------")
+
+
 
 """Variáveis Globais"""
 pix_x = None
 pix_y = None
 pix_area = None
 
-
+needed_placas = 21
 placa_dim1 = 1.65
 placa_dim2 = 1
 orient = "Hor"
@@ -543,6 +591,8 @@ area_de_interesse = pickle.load(file_area)
 
 file_heatmap = open('heatmap', 'rb')
 heatmap = pickle.load(file_heatmap)
+highest_sha_value = highest_value_in_array(heatmap)
+print("O maior valor de sombreamento é {}".format(highest_sha_value))
 
 #execução de todos os casos
 for case in cases:
@@ -570,11 +620,12 @@ for case in cases:
         place_panels()
     else:
         place_panels()
+    while placas_counter < needed_placas:
+        best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
-    get_closest_shadows(0)
 
 
-print_placas()
+#print_placas()
 
 python_array_to_pickle(lista_placas, 'lista_placas')
