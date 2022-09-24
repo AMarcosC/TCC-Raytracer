@@ -637,8 +637,8 @@ panel_pix_y = 21
 cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
-['Hor', 'bottom-left', False, False],
-#['Vert', 'bottom-right', False, False],
+#['Hor', 'bottom-left', False, False],
+['Hor', 'bottom-right', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
 ]

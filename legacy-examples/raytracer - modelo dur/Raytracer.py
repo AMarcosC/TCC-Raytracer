@@ -78,10 +78,10 @@ def screen_size(list_triangles):
                 y_menor = vertex.y
             if vertex.z > z_maior:
                 z_maior = vertex.z
-    l = (int((x_menor)*(1+forramento))) - 1
-    r = (int((x_maior)*(1+forramento))) + 1
-    top = (int((y_maior)*(1+forramento))) + 1
-    bot = (int((y_menor)*(1+forramento))) - 1
+    l = (int((x_menor)-(forramento))) - 1
+    r = (int((x_maior)+(forramento))) + 1
+    top = (int((y_maior)+(forramento))) + 1
+    bot = (int((y_menor)-(forramento))) - 1
     if z_maior <= 0:
         depth = 1
     else:
@@ -367,7 +367,7 @@ def create_shape(intensity):
 """Variáveis Globais e Locais"""
 
 pixel_por_metro = 50
-forramento = 0.5
+forramento = 4  #maior dimensão da placa em metros mais margem
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
 

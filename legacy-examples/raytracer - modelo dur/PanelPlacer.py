@@ -86,16 +86,20 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
                 elif slope(ar[i-1][j], ar[i+1][j]) > temp:
                     temp = slope(ar[i-1][j], ar[i+1][j])
                     or_temp = 'y'
-                elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:
+                elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:  #corrigir depois, criar uma margem de erro para inclinação
                     temp = slope(ar[i-1][j-1], ar[i+1][j+1])
                     or_temp = 'other'
                 elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
                     temp = slope(ar[i+1][j-1], ar[i-1][j+1])
                     or_temp = 'other'
+                else:     #caso em que a inclinação é zero
+                    temp = 0
+                    or_temp = 'x'
                 return (temp, or_temp)
 
 def placa_projection():
-    global placa_dim1, placa_dim2, placa_dimx, placa_dimy
+    global placa_dim1, placa_dim2, placa_dimx, placa_dimy, incl
+    print(incl)
     alpha = math.cos(math.atan(incl[0]))
     print(alpha)
     if orient == 'Vert' and incl[1] == 'x':
@@ -116,7 +120,7 @@ def placa_projection():
 #será impar, importante para locar no eixo
 
 def dimention_to_pixel():
-    global panel_pix_x, panel_pix_y
+    global panel_pix_x, panel_pix_y, placa_dimx, placa_dimy
     temp_x = (placa_dimx//round(pix_x,4)) + 1
     temp_y = (placa_dimy//round(pix_y,4)) + 1
     if impar(temp_x) == True:
@@ -132,7 +136,7 @@ def dimention_to_pixel():
 """
 
 def dimention_to_pixel():
-    global panel_pix_x, panel_pix_y
+    global panel_pix_x, panel_pix_y, placa_dimx, placa_dimy, pix_x, pix_y
     temp_x = (placa_dimx//round(pix_x,4)) + 1
     temp_y = (placa_dimy//round(pix_y,4)) + 1
     panel_pix_x = int(temp_x)
@@ -611,13 +615,17 @@ def highest_score_position(grid_list):
 
 
 """Variáveis Globais"""
+os.chdir(sys.path[0])
+print(os.listdir())
+change_to_current_dir()
+
 pix_x = None
 pix_y = None
 pix_area = None
 
 needed_placas = 21
-placa_dim1 = 1.65
-placa_dim2 = 1
+placa_dim1 = 3
+placa_dim2 = 4
 orient = "Hor"
 routing = "bottom-right"
 axis_lock = False
@@ -637,8 +645,8 @@ panel_pix_y = 21
 cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
-['Hor', 'bottom-left', False, False],
-#['Vert', 'bottom-right', False, False],
+#['Hor', 'bottom-left', False, False],
+['Vert', 'bottom-left', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
 ]
@@ -653,8 +661,8 @@ file_heatmap = open('heatmap', 'rb')
 heatmap = pickle.load(file_heatmap)
 highest_sha_value = highest_value_in_array(heatmap)
 print("O maior valor de sombreamento é {}".format(highest_sha_value))
-"""
-Proposta 01
+
+#Proposta 01
 
 #execução de todos os casos
 for case in cases:
@@ -686,8 +694,8 @@ for case in cases:
         best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
-"""
 
+"""
 for case in cases:
     case_index = cases.index(case)
     print("-------------------------")
@@ -707,6 +715,7 @@ for case in cases:
     place_panels_in_grid(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+"""
 
 print_placas()
 
