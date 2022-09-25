@@ -247,9 +247,41 @@ def routing_sequence():
         end_j = (maior(panel_pix_y,panel_pix_x)+1)
         step_j = -1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-top" and orient_alternation == False:
+        begin_i = (panel_pix_y)+1
+        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        step_i = 1
+        begin_j = (panel_pix_x)+1
+        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-top" and orient_alternation == True:
+        begin_i = (maior(panel_pix_y,panel_pix_x)+1)
+        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_i = 1
+        begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-bottom" and orient_alternation == False:
+        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = (panel_pix_y)+1
+        step_i = -1
+        begin_j = (panel_pix_x)+1
+        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-bottom" and orient_alternation == True:
+        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = (maior(panel_pix_y,panel_pix_x)+1)
+        step_i = -1
+        begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+        #continuar outros casos
 
-
-def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de baixo
+def placing_possible(i,j):
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
@@ -308,6 +340,18 @@ def place_panels():
     for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
         for j in range(index[1][0], index[1][1], index[1][2]):
+            #print("Estamos no ponto {} {}".format(i,j))
+            if placing_possible(i,j) == True:
+                execute_placing(i,j,1.0)
+            else:   #apenas por motivos de debug
+                continue
+
+def place_panels_updown_route():
+    global placas_counter, lista_placas
+    index = routing_sequence()
+    for j in range(index[1][0], index[1][1], index[1][2]):
+        print("Etapa {} de {}".format(j,len(placas_locadas[0])))
+        for i in range(index[0][0], index[0][1], index[0][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
                 execute_placing(i,j,1.0)
@@ -623,7 +667,7 @@ pix_x = None
 pix_y = None
 pix_area = None
 
-needed_placas = 21
+#needed_placas = 21
 placa_dim1 = 3
 placa_dim2 = 4
 orient = "Hor"
@@ -646,9 +690,11 @@ cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
 #['Hor', 'bottom-left', False, False],
-['Vert', 'bottom-left', False, False],
+#['Vert', 'bottom-left', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
+['Vert', 'left-bottom', False, False],
+['Vert', 'bottom-left', False, False],
 ]
 
 lista_placas = []
@@ -687,11 +733,11 @@ for case in cases:
         place_panels_alternate_orient()
     elif axis_lock == True and orient_alternation == True:
         print("Não há função para este caso!")
-        place_panels()
+        place_panels_updown_route()
     else:
-        place_panels()
-    while placas_counter < needed_placas:
-        best_placing()
+        place_panels_updown_route()
+    #while placas_counter < needed_placas:
+    #    best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
 

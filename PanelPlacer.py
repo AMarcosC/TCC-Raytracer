@@ -86,12 +86,15 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
                 elif slope(ar[i-1][j], ar[i+1][j]) > temp:
                     temp = slope(ar[i-1][j], ar[i+1][j])
                     or_temp = 'y'
-                elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:
+                elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:  #corrigir depois, criar uma margem de erro para inclinação
                     temp = slope(ar[i-1][j-1], ar[i+1][j+1])
                     or_temp = 'other'
                 elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
                     temp = slope(ar[i+1][j-1], ar[i-1][j+1])
                     or_temp = 'other'
+                else:     #caso em que a inclinação é zero
+                    temp = 0
+                    or_temp = 'x'
                 return (temp, or_temp)
 
 def placa_projection():
@@ -243,6 +246,39 @@ def routing_sequence():
         end_j = (maior(panel_pix_y,panel_pix_x)+1)
         step_j = -1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-top" and orient_alternation == False:
+        begin_i = (panel_pix_y)+1
+        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        step_i = 1
+        begin_j = (panel_pix_x)+1
+        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-top" and orient_alternation == True:
+        begin_i = (maior(panel_pix_y,panel_pix_x)+1)
+        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_i = 1
+        begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-bottom" and orient_alternation == False:
+        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = (panel_pix_y)+1
+        step_i = -1
+        begin_j = (panel_pix_x)+1
+        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+    elif routing == "left-bottom" and orient_alternation == True:
+        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = (maior(panel_pix_y,panel_pix_x)+1)
+        step_i = -1
+        begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        step_j = 1
+        return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
+        #continuar outros casos
 
 
 def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de baixo
@@ -304,6 +340,19 @@ def place_panels():
     for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
         for j in range(index[1][0], index[1][1], index[1][2]):
+            #print("Estamos no ponto {} {}".format(i,j))
+            if placing_possible(i,j) == True:
+                execute_placing(i,j,1.0)
+            else:   #apenas por motivos de debug
+                continue
+
+
+def place_panels_updown_route():
+    global placas_counter, lista_placas
+    index = routing_sequence()
+    for j in range(index[1][0], index[1][1], index[1][2]):
+        print("Etapa {} de {}".format(j,len(placas_locadas[0])))
+        for i in range(index[0][0], index[0][1], index[0][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
                 execute_placing(i,j,1.0)
