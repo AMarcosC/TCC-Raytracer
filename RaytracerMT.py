@@ -341,14 +341,17 @@ def pixel_coordinates(n, m):
 def area_of_interest():   #retorna uma matriz com apenas os pontos da Ã¡rea de interesse, vec3
     coord_list = all_combinations(n_y, n_x)
     print("---Delimitando Ã¡rea de interesse---")
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        executor.map(area_of_interest_check, coord_list)
-    return tab_area_of_interest  #analisar necessidade
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        #executor.map(area_of_interest_check, coord_list)
+        results = [executor.submit(area_of_interest_check, coord) for coord in coord_list]
+        for f in concurrent.futures.as_completed(results):
+            print(f.result())
+    #return tab_area_of_interest  #analisar necessidade
 
 
 def area_of_interest_check(c):
-    print("Na posição: {}".format(c))
-    pos_ini = pixel_positions[c[0]][c[1]]
+    #print("Na posição: {}".format(c))
+    pos_ini = coordenadas_pixels[c[0]][c[1]]
     dist_atual = FARAWAY
     for objeto in cena:
         temp = intercept_tri(objeto, pos_ini, dir)
@@ -358,6 +361,7 @@ def area_of_interest_check(c):
             tab_area_of_interest[c[0]][c[1]] = intercept_point
     if c[1] == 0:
         print("Etapa {} de {}".format(c[0], n_y))
+    return "Top"
 
 
 def silhueta_points(mat_tela, i, j, intensity):  #funÃ§Ã£o que retorna apenas os pontos da silhueta das Ã¡reas de determinada intensidade
