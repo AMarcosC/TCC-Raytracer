@@ -38,9 +38,30 @@ from PIL import Image
 from numpy import linalg
 from colour import Color
 import pickle
-
+import threading
+import multiprocessing
+from multiprocessing import Pool
+from multiprocessing.dummy import Pool as ThreadPool
+import concurrent.futures
+import time
+from tqdm import tqdm
 
 """Funções Voltadas ao problema"""
+
+def ordered_values_until(number):
+    lista = []
+    for k in range (0,number,1):
+        lista.append(k)
+    return lista
+
+def all_combinations(lines, columns):
+    comb = []
+    for i in range (0, lines, 1):
+        for j in range(0, columns, 1):
+            comb.append([i,j])
+    return comb
+
+
 
 def ray_p(t,e,dir):  #fórmula que define o ponto no espaço atingido por um raio
     p = e + vetor_escalar(dir,t)
@@ -60,7 +81,7 @@ def pixel_pos(i,j):  #transforma um pixel na tela em um ponto no espaço
 
 
 def screen_size(list_triangles):
-    global l, r, top, bot, depth, n_x, n_y, pixel_por_metro, forramento
+    global l, r, top, bot, depth, n_x, n_y, pixel_por_metro
     x_menor = FARAWAY
     x_maior = - FARAWAY
     y_menor = FARAWAY
@@ -78,10 +99,10 @@ def screen_size(list_triangles):
                 y_menor = vertex.y
             if vertex.z > z_maior:
                 z_maior = vertex.z
-    l = (int((x_menor)-(forramento))) - 1
-    r = (int((x_maior)+(forramento))) + 1
-    top = (int((y_maior)+(forramento))) + 1
-    bot = (int((y_menor)-(forramento))) - 1
+    l = (int((x_menor)*1.2)) - 1
+    r = (int((x_maior)*1.2)) + 1
+    top = (int((y_maior)*1.2)) + 1
+    bot = (int((y_menor)*1.2)) - 1
     if z_maior <= 0:
         depth = 1
     else:
@@ -245,29 +266,34 @@ def trace_sph(): #função que emite os raios para um círculo
 
 
 def trace_tri(): #função que emite os raios para um conjunto de triângulos
-    table = []  #matriz vazia
-    for i in range (0, n_y, 1):  #passando pelos pixels verticalmente
-        line = []    #lista vazia
-        for j in range (0, n_x, 1):  #passando pelos pixels horizontalmente
-                et = pixel_pos(j,i)  #determina o ponto do pixel no espaço (origem da luz)
-                e = vec3(et[0],et[1], depth)  #a origem do raio é o ponto do pixel no espaço
-                res = ([0,0,0,0], FARAWAY)  #o pixel inicia as iterações como transparente e no infinito
-                for objeto in cena:  #pra cada objeto na cena
-                    temp = intercept_tri(objeto, e, dir)
-                    if temp[1] < res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1]
-                        res = temp
-                        intercept_point = ray_p(res[1],e,dir)  #descobrimos o ponto dessa interceptação no espaço
-                        temp = (diffuse_tri(intercept_point, objeto, luz_dir, kd, ka),temp[1])  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
-                        if temp[1] <= res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1] - ESTUDAR RETIRAR
-                            res = temp         #Estudar retirar, parece desnecessário
-                        for outro_obj in cena: #para os objetos na cena
-                            if outro_obj != objeto and intercept_tri_bool(outro_obj, intercept_point,luz_dir): #se estivermos no telhado, se o triângulo não for ele mesmo e interceptar outro triângulo
-                                #if temp[1] <= res[1]:  #e a distância dessa interceptação for menor ou igual que a atual
-                                res = ([0,0,0,255], temp[1])  #então este pixel está na sombra
-                line.append(res[0])     #adiciona o valor da cor interceptada na lista
-        print("{} de {}".format(i, n_y))       #indica o andamento
-        table.append(line)           #adiciona a lista na matriz, para compor a imagem
-    return table  #retorna a tabela com as cores
+    table = np.full((n_y, n_x), None)  #matriz vazia
+    coord_list = all_combinations(n_y, n_x)
+    pbar_trace = tqdm(total=len(coord_list))
+    pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
+    for result in pool.imap_unordered(color_on_point, coord_list, chunksize=100):
+        pbar_trace.update(1)
+    pool.close() # No more work
+    pool.join() # Wait for completion
+    return table  #retorna a tabela com as cores, analisar necessidade
+
+
+
+def color_on_point(c):
+    et = pixel_pos(c[1],c[0])  #determina o ponto do pixel no espaço (origem da luz)
+    e = vec3(et[0],et[1], depth)  #a origem do raio é o ponto do pixel no espaço
+    res = ([0,0,0,0], FARAWAY)  #o pixel inicia as iterações como transparente e no infinito
+    for objeto in cena:  #pra cada objeto na cena
+        temp = intercept_tri(objeto, e, dir)
+        if temp[1] < res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1]
+            res = temp
+            intercept_point = ray_p(res[1],e,dir)  #descobrimos o ponto dessa interceptação no espaço
+            temp = (diffuse_tri(intercept_point, objeto, luz_dir, kd, ka),temp[1])  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
+            if temp[1] <= res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1] - ESTUDAR RETIRAR
+                res = temp         #Estudar retirar, parece desnecessário
+            for outro_obj in cena: #para os objetos na cena
+                if outro_obj != objeto and intercept_tri_bool(outro_obj, intercept_point,luz_dir): #se estivermos no telhado, se o triângulo não for ele mesmo e interceptar outro triângulo
+                    res = ([0,0,0,255], temp[1])  #então este pixel está na sombra
+    table[c[0]][c[1]]=res[0]     #adiciona o valor da cor interceptada na lista
 
 
 
@@ -318,21 +344,28 @@ def pixel_coordinates(n, m):
         tabela_pc.append(linha_pc)
     return tabela_pc
 
-def area_of_interest(pixel_positions):   #retorna uma matriz com apenas os pontos da área de interesse, vec3
-    tab_area_of_interest = np.full_like(pixel_positions, None)
+def area_of_interest():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+    tab_area_of_interest = np.full_like(coordenadas_pixels, None)
+    coord_list = all_combinations(n_y, n_x)
     print("---Delimitando área de interesse---")
-    for i in range (0, len(pixel_positions), 1):
-        print("Etapa {} de {}".format(i,len(pixel_positions)))
-        for j in range (0, len(pixel_positions[0]), 1):
-            pos_ini = pixel_positions[i][j]
-            dist_atual = FARAWAY
-            for objeto in cena:
-                temp = intercept_tri(objeto, pos_ini, dir)
-                if temp[1] < dist_atual and (objeto in telhado):  #se a distância da interceptação temp[1] for menor que a distância atual e estiver no telhado
-                    dist_atual = temp[1]
-                    intercept_point = ray_p(dist_atual,pos_ini,dir)  #descobrimos o ponto dessa interceptação no espaço
-                    tab_area_of_interest[i][j] = intercept_point
-    return tab_area_of_interest
+    pbar = tqdm(total=len(coord_list))
+    pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
+    for result in pool.imap_unordered(area_of_interest_check, coord_list, chunksize=100):
+        pbar.update(1)
+    pool.close() # No more work
+    pool.join() # Wait for completion
+    return tab_area_of_interest  #analisar necessidade
+
+
+def area_of_interest_check(c):
+    #print("Na posi��o: {}".format(c))
+    pos_ini = coordenadas_pixels[c[0]][c[1]]
+    dist_atual = FARAWAY
+    for objeto in cena:
+        temp = intercept_tri(objeto, pos_ini, dir)
+        if temp[1] < dist_atual and (objeto in telhado):  #se a distância da interceptação temp[1] for menor que a distância atual e estiver no telhado
+            dist_atual = temp[1]
+            intercept_point = ray_p(dist_atual,pos_ini,dir)  #descobrimos o ponto dessa interceptação no espaço
 
 
 def silhueta_points(mat_tela, i, j, intensity):  #função que retorna apenas os pontos da silhueta das áreas de determinada intensidade
@@ -365,9 +398,11 @@ def create_shape(intensity):
 
 
 """Variáveis Globais e Locais"""
+core_count=multiprocessing.cpu_count()
+print("Número de núcleos da CPU: {}".format(core_count))
 
-pixel_por_metro = 50
-forramento = 4  #maior dimensão da placa em metros mais margem
+
+pixel_por_metro = 10
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
 
@@ -386,17 +421,17 @@ bot = -3  #coordenada y do fim da tela
 tri2 = Triangle(vec3(-60,45,-25), vec3(-60,-45,-25), vec3(60,-45,-25), [255, 255, 255, 255]) #fundo da imagem (branco)
 tri3 = Triangle(vec3(-60,45,-25), vec3(60,45,-25), vec3(60,-45,-25), [255, 255, 255, 255])   #fundo da imagem (branco)
 
-os.chdir(sys.path[0])
-print(os.listdir())
+#os.chdir(sys.path[0])
+#print(os.listdir())
 change_to_current_dir()
-telhado_obj = parse('assets/DUR-EX-3-TELHADO.obj')
-#modelagem_obj = parse('assets/M2-Paredes.obj')
+telhado_obj = parse('assets/M2-Telhado00.obj')
+modelagem_obj = parse('assets/M2-Paredes.obj')
 cena = []
-telhado = obj_to_triangles(telhado_obj, [170,101,78,255])
-#modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
+telhado = obj_to_triangles(telhado_obj, [217,101,78,255])
+modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
 
 add_triangles_to_cena(telhado)
-#add_triangles_to_cena(modelagem)
+add_triangles_to_cena(modelagem)
 
 screen_size(cena)
 
@@ -419,9 +454,9 @@ sunpath = [
 #[45.34,	58.37],
 #[57.08,	44.88],
 #[65.24,	19.86],
-[65.84,	344.63],
+#[65.84,	344.63],
 #[58.45,	317.74],
-#[47.01,	303.09],
+[47.01,	303.09],
 #[33.96,	295],
 #[20.2, 290.18],
 #[6.09, 287.18],
@@ -435,7 +470,10 @@ shape_points = []  #testando apenas
 
 coordenadas_pixels = pixel_coordinates(n_y,n_x)
 coordenadas_intercept = []
-area_de_interesse = area_of_interest(coordenadas_pixels)  #area_de_interesse: matriz de coordenadas em vec3
+tab_area_of_interest = np.full_like(coordenadas_pixels, None)   #estudar retirar essa linha
+area_de_interesse = area_of_interest()  #area_de_interesse: matriz de coordenadas em vec3
+table = np.full((n_y, n_x), None)  #matriz vazia
+
 
 for time in sunpath:
     cont = cont+1
@@ -455,10 +493,10 @@ print(heatmap_somado)
 python_array_to_pickle(heatmap_somado, 'heatmap')
 python_array_to_pickle(area_de_interesse, 'area')
 
-#create_shape(1)
-#shape_csv = np.asarray(shape_points)
-#print(shape_csv)
-#np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
+create_shape(1)
+shape_csv = np.asarray(shape_points)
+print(shape_csv)
+np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
 #shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
 
 
