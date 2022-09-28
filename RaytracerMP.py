@@ -61,6 +61,28 @@ def all_combinations(lines, columns):
             comb.append([i,j])
     return comb
 
+def results_to_list(results):
+    output = []
+    for res in results:
+        print("Tem resultado!")
+        output.append(res)
+    return output
+
+
+def list_to_array_reshape(lista, x, y):
+    array = []
+    counter = 0
+    line = []
+    for i in lista:
+        if counter < x-1:
+            line.append(i)
+            counter += 1
+        else:
+            line.append(i)
+            array.append(line)
+            counter = 0
+            line = []
+    return array
 
 
 def ray_p(t,e,dir):  #fórmula que define o ponto no espaço atingido por um raio
@@ -266,15 +288,25 @@ def trace_sph(): #função que emite os raios para um círculo
 
 
 def trace_tri(): #função que emite os raios para um conjunto de triângulos
-    table = np.full((n_y, n_x), None)  #matriz vazia
+    coord_list = all_combinations(n_y, n_x)
+    resultados = trace_tri_results()
+    print("---Passando Resultados---")
+    res_ar = list_to_array_reshape(resultados, n_x, n_y)
+    return res_ar
+
+
+def trace_tri_results(): #função que emite os raios para um conjunto de triângulos
     coord_list = all_combinations(n_y, n_x)
     pbar_trace = tqdm(total=len(coord_list))
+    resultados_list = []
     pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
-    for result in pool.imap_unordered(color_on_point, coord_list, chunksize=100):
+    for result in pool.imap(color_on_point, coord_list, chunksize=n_x):
+        resultados_list.append(result)
         pbar_trace.update(1)
     pool.close() # No more work
     pool.join() # Wait for completion
-    return table  #retorna a tabela com as cores, analisar necessidade
+    return resultados_list  #retorna a lista com as cores, precisa ser colocada em shape
+
 
 
 
@@ -293,7 +325,7 @@ def color_on_point(c):
             for outro_obj in cena: #para os objetos na cena
                 if outro_obj != objeto and intercept_tri_bool(outro_obj, intercept_point,luz_dir): #se estivermos no telhado, se o triângulo não for ele mesmo e interceptar outro triângulo
                     res = ([0,0,0,255], temp[1])  #então este pixel está na sombra
-    table[c[0]][c[1]]=res[0]     #adiciona o valor da cor interceptada na lista
+    return res[0]     #adiciona o valor da cor interceptada na lista
 
 
 
@@ -345,20 +377,30 @@ def pixel_coordinates(n, m):
     return tabela_pc
 
 def area_of_interest():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
-    tab_area_of_interest = np.full_like(coordenadas_pixels, None)
     coord_list = all_combinations(n_y, n_x)
+    resultados = area_of_interest_results()
+    print("---Passando Resultados---")
+    res_ar = list_to_array_reshape(resultados, n_x, n_y)
+    return res_ar
+
+
+def area_of_interest_results():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+    coord_list = all_combinations(n_y, n_x)
+    resultados_list = []
     print("---Delimitando área de interesse---")
     pbar = tqdm(total=len(coord_list))
     pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
-    for result in pool.imap_unordered(area_of_interest_check, coord_list, chunksize=100):
+    results = pool.imap(area_of_interest_check, coord_list, chunksize=n_x)
+    for result in results:
+        resultados_list.append(result)
         pbar.update(1)
     pool.close() # No more work
     pool.join() # Wait for completion
-    return tab_area_of_interest  #analisar necessidade
+    return resultados_list  #analisar necessidade
 
 
 def area_of_interest_check(c):
-    #print("Na posi��o: {}".format(c))
+    intercept_point = None
     pos_ini = coordenadas_pixels[c[0]][c[1]]
     dist_atual = FARAWAY
     for objeto in cena:
@@ -366,6 +408,7 @@ def area_of_interest_check(c):
         if temp[1] < dist_atual and (objeto in telhado):  #se a distância da interceptação temp[1] for menor que a distância atual e estiver no telhado
             dist_atual = temp[1]
             intercept_point = ray_p(dist_atual,pos_ini,dir)  #descobrimos o ponto dessa interceptação no espaço
+    return intercept_point
 
 
 def silhueta_points(mat_tela, i, j, intensity):  #função que retorna apenas os pontos da silhueta das áreas de determinada intensidade
@@ -402,7 +445,7 @@ core_count=multiprocessing.cpu_count()
 print("Número de núcleos da CPU: {}".format(core_count))
 
 
-pixel_por_metro = 10
+pixel_por_metro = 20
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
 
@@ -470,7 +513,10 @@ shape_points = []  #testando apenas
 
 coordenadas_pixels = pixel_coordinates(n_y,n_x)
 coordenadas_intercept = []
-tab_area_of_interest = np.full_like(coordenadas_pixels, None)   #estudar retirar essa linha
+
+#tab_area_of_interest_base = multiprocessing.Array()   #estudar retirar essa linha
+
+
 area_de_interesse = area_of_interest()  #area_de_interesse: matriz de coordenadas em vec3
 table = np.full((n_y, n_x), None)  #matriz vazia
 
@@ -484,20 +530,14 @@ for time in sunpath:
     img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/MRay_Teste{}.png'.format(cont))
 
-print(heatmap)
+#print(heatmap)
 
 
 heatmap_somado = heatmap_to_img(heatmap)
-print(heatmap_somado)
+#print(heatmap_somado)
 
 python_array_to_pickle(heatmap_somado, 'heatmap')
 python_array_to_pickle(area_de_interesse, 'area')
-
-create_shape(1)
-shape_csv = np.asarray(shape_points)
-print(shape_csv)
-np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
-#shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
 
 
 print("---------------Terminou-------------------")

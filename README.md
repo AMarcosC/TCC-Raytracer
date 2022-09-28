@@ -36,10 +36,11 @@ A execução de "PanelPlacer.py" pode resultar em erros, visto que esta versão 
 - Varredura da imagem pode começar pelos quatro cantos da imagem (top-left, bottom-left, top-right, bottom-right);
 - Placas podem ser inseridas com alinhamento relativo à primeira placa inserida (trata-se de outro conceito, mais promissor que a tentativa anterior);
 - Inserção de placas na região sombreada, na melhor posição possível (placas passam a ter um "score" que determina a melhor posição).
+- Uso de multiprocessamento no traçado de raios (RaytracerMP.py). O programa agora usa todos os núcleos do processador menos 1, para evitar travamento/superaquecimento.
 
 ## Melhorias Pendentes
 
-- Aplicar Multiprocessamento e/ou uso da GPU no processamento do traçado de raios;
+- Aplicar uso da GPU no processamento do traçado de raios;
 - Processar o ray-tracing apenas na área de interesse, agilizando o código;
 - Correção das dimensões reais da placa ao mudar a orientação durante a locação;
 - Produzir arquivo com as coordenadas das placas para inserir no AutoCAD, por exemplo;
