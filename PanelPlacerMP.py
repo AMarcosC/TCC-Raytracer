@@ -3,6 +3,9 @@ import math
 from BasicFunctions import *
 from colour import Color
 from PIL import Image
+import multiprocessing
+from multiprocessing import Pool
+from tqdm import tqdm
 
 """
 Observações:
@@ -97,7 +100,7 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
                     or_temp = 'x'
                 return (temp, or_temp)
 
-def placa_projection():
+def placa_projection(incl):
     global placa_dim1, placa_dim2, placa_dimx, placa_dimy
     alpha = math.cos(math.atan(incl[0]))
     print(alpha)
@@ -180,108 +183,107 @@ def alternate_orientation():
     panel_pix_x = temp_pix_y
     panel_pix_y = temp_pix_x
 
-def routing_sequence():
-    global routing, orient_alternation
+def routing_sequence(routing, orient_alternation):
     if routing == "top-left" and orient_alternation == False:
         begin_i = (panel_pix_y)+1
-        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = len(heatmap) - ((panel_pix_y)+1)
         step_i = 1
         begin_j = (panel_pix_x)+1
-        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        end_j = len(heatmap[0]) - ((panel_pix_x)+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "top-left" and orient_alternation == True:
         begin_i = (maior(panel_pix_y,panel_pix_x)+1)
-        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = len(heatmap) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_i = 1
         begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
-        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(heatmap[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "bottom-left" and orient_alternation == False:
-        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        begin_i = len(heatmap) - ((panel_pix_y)+1)
         end_i = (panel_pix_y)+1
         step_i = -1
         begin_j = (panel_pix_x)+1
-        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        end_j = len(heatmap[0]) - ((panel_pix_x)+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "bottom-left" and orient_alternation == True:
-        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        begin_i = len(heatmap) - ((maior(panel_pix_y,panel_pix_x))+1)
         end_i = (maior(panel_pix_y,panel_pix_x)+1)
         step_i = -1
         begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
-        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(heatmap[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "top-right" and orient_alternation == False:
         begin_i = (panel_pix_y)+1
-        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = len(heatmap) - ((panel_pix_y)+1)
         step_i = 1
-        begin_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        begin_j = len(heatmap[0]) - ((panel_pix_x)+1)
         end_j = (panel_pix_x+1)
         step_j = -1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "top-right" and orient_alternation == True:
         begin_i = (maior(panel_pix_y,panel_pix_x)+1)
-        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = len(heatmap) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_i = 1
-        begin_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        begin_j = len(heatmap[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         end_j = (maior(panel_pix_y,panel_pix_x)+1)
         step_j = -1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "bottom-right" and orient_alternation == False:
-        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        begin_i = len(heatmap) - ((panel_pix_y)+1)
         end_i = (panel_pix_y)+1
         step_i = -1
-        begin_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        begin_j = len(heatmap[0]) - ((panel_pix_x)+1)
         end_j = (panel_pix_x+1)
         step_j = -1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "bottom-right" and orient_alternation == True:
-        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        begin_i = len(heatmap) - ((maior(panel_pix_y,panel_pix_x))+1)
         end_i = (maior(panel_pix_y,panel_pix_x)+1)
         step_i = -1
-        begin_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        begin_j = len(heatmap[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         end_j = (maior(panel_pix_y,panel_pix_x)+1)
         step_j = -1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "left-top" and orient_alternation == False:
         begin_i = (panel_pix_y)+1
-        end_i = len(placas_locadas) - ((panel_pix_y)+1)
+        end_i = len(heatmap) - ((panel_pix_y)+1)
         step_i = 1
         begin_j = (panel_pix_x)+1
-        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        end_j = len(heatmap[0]) - ((panel_pix_x)+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "left-top" and orient_alternation == True:
         begin_i = (maior(panel_pix_y,panel_pix_x)+1)
-        end_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_i = len(heatmap) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_i = 1
         begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
-        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(heatmap[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "left-bottom" and orient_alternation == False:
-        begin_i = len(placas_locadas) - ((panel_pix_y)+1)
+        begin_i = len(heatmap) - ((panel_pix_y)+1)
         end_i = (panel_pix_y)+1
         step_i = -1
         begin_j = (panel_pix_x)+1
-        end_j = len(placas_locadas[0]) - ((panel_pix_x)+1)
+        end_j = len(heatmap[0]) - ((panel_pix_x)+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
     elif routing == "left-bottom" and orient_alternation == True:
-        begin_i = len(placas_locadas) - ((maior(panel_pix_y,panel_pix_x))+1)
+        begin_i = len(heatmap) - ((maior(panel_pix_y,panel_pix_x))+1)
         end_i = (maior(panel_pix_y,panel_pix_x)+1)
         step_i = -1
         begin_j = ((maior(panel_pix_y,panel_pix_x))+1)
-        end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
+        end_j = len(heatmap[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
         #continuar outros casos
 
 
-def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de baixo
+def placing_possible(i,j,placas_locadas):  #jeito meio burro, dá pra simplificar como a de baixo
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
@@ -297,7 +299,7 @@ def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de bai
             return False
     return True
 
-def placing_possible_in_shadow(i,j):
+def placing_possible_in_shadow(i,j, placas_locadas):
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
@@ -314,8 +316,7 @@ def placing_possible_in_shadow(i,j):
     return True
 
 
-def execute_placing(i,j,score):
-    global lista_placas, placas_counter
+def execute_placing(i,j,score, placas_locadas, lista_placas, placas_counter):
     placas_counter += 1
     for u in range (i, i-panel_pix_y, -1):
         for v in range (j, j+panel_pix_x, 1):
@@ -334,24 +335,24 @@ def panel_edge_pixels(i,j):
     return [t_l, t_r, b_l, b_r]
 
 
-def place_panels():
-    global placas_counter, lista_placas
-    index = routing_sequence()
+def place_panels(lista_placas, placas_counter, placas_locadas, routing, orient_alternation, pbar):
+    index = routing_sequence(routing, orient_alternation)
     for i in range(index[0][0], index[0][1], index[0][2]):
-        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        #print("Etapa {} de {}".format(i,len(placas_locadas)))
+        pbar.update(1)
         for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
-            if placing_possible(i,j) == True:
-                execute_placing(i,j,1.0)
+            if placing_possible(i,j, placas_locadas) == True:
+                execute_placing(i,j,1.0, placas_locadas, lista_placas, placas_counter)
             else:   #apenas por motivos de debug
                 continue
 
 
-def place_panels_updown_route():
-    global placas_counter, lista_placas
-    index = routing_sequence()
+def place_panels_updown_route(lista_placas, placas_counter, routing, orient_alternation):
+    index = routing_sequence(routing, orient_alternation)
     for j in range(index[1][0], index[1][1], index[1][2]):
-        print("Etapa {} de {}".format(j,len(placas_locadas[0])))
+        #print("Etapa {} de {}".format(i,len(placas_locadas)))
+        pbar.update(1)
         for i in range(index[0][0], index[0][1], index[0][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
@@ -360,13 +361,14 @@ def place_panels_updown_route():
                 continue
 
 
-def place_panels_alternate_orient():
+def place_panels_alternate_orient(routing, orient_alternation):
     global placas_counter, lista_placas
-    index = routing_sequence()
+    index = routing_sequence(routing, orient_alternation)
     x_axis = 0
     y_axis = 0
     for i in range(index[0][0], index[0][1], index[0][2]):
-        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        #print("Etapa {} de {}".format(i,len(placas_locadas)))
+        pbar.update(1)
         for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
             if placing_possible(i,j) == True:
@@ -379,9 +381,9 @@ def place_panels_alternate_orient():
                 continue
 
 
-def place_panels_aligned():  #será substituída
+def place_panels_aligned(routing, orient_alternation):  #será substituída
     global placas_counter, axis_lock, panel_pix_x, panel_pix_y, lista_placas
-    index = routing_sequence()
+    index = routing_sequence(routing, orient_alternation)
     x_axis = 0
     y_axis = 0
     for i in range(index[0][0], index[0][1], index[0][2]):
@@ -409,13 +411,13 @@ def place_panels_aligned():  #será substituída
                 continue
 
 
-def place_panels_in_grid(case):
+def place_panels_in_grid(case, placas_locadas):
     global placas_counter, panel_pix_x, panel_pix_y, lista_placas, needed_placas
     grid = return_all_grid_points(case)
     grid_filter = []
     grid_optimum = []
     for p in grid:
-        if placing_possible_in_shadow(p[1], p[0]) == True:
+        if placing_possible_in_shadow(p[1], p[0], placas_locadas) == True:
             p[2] = panel_score(p[1], p[0])
             if p[2] > 0.999:
                 grid_optimum.append(p)
@@ -481,8 +483,8 @@ def all_grid_points(i,j,case):
                 coord.append([x, y, 0])
     return coord
 
-def return_all_grid_points(case):
-    index = routing_sequence()
+def return_all_grid_points(case, routing, orient_alternation):
+    index = routing_sequence(routing, orient_alternation)
     for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
         for j in range(index[1][0], index[1][1], index[1][2]):
@@ -625,23 +627,23 @@ def panel_score(i, j):
             cumulative_value += (highest_sha_value - heatmap[u][v])
     return (cumulative_value / (highest_sha_value*panel_pix_x*panel_pix_y))
 
-def best_placing():
-    global placas_counter, lista_placas
-    index = routing_sequence()
+def best_placing(placas_counter, lista_placas, placas_locadas, routing, orient_alternation, pbar):
+    index = routing_sequence(routing, orient_alternation)
     best_score = 0
     cbp = [0, 0]  #current best place
+    print("Procurando melhor encaixe...")
     for i in range(index[0][0], index[0][1], index[0][2]):
-        print("Etapa {} de {}".format(i,len(placas_locadas)))
+        pbar.update(1)
         for j in range(index[1][0], index[1][1], index[1][2]):
             #print("Estamos no ponto {} {}".format(i,j))
-            if placing_possible_in_shadow(i,j) == True:
+            if placing_possible_in_shadow(i,j, placas_locadas) == True:
                 temp_score = panel_score(i,j)
                 if temp_score > best_score:
                     best_score = temp_score
                     cbp = [i, j]
                 elif temp_score == best_score:
                     print("Empate!")
-    execute_placing(cbp[0],cbp[1], best_score)
+    execute_placing(cbp[0],cbp[1], best_score, placas_locadas, lista_placas, placas_counter)
 
 
 def highest_score_position(grid_list):
@@ -657,8 +659,45 @@ def highest_score_position(grid_list):
             temp_index = i
     return [temp_x, temp_y, temp_score, temp_index]
 
+def case_resolution_normal(case):
+    lista_placas = []
+    placas_counter = 0
+    case_index = cases.index(case)
+    print("-------------------------")
+    print("----Iniciando caso {}----".format(cases.index(case)))
+    print("-------------------------")
+    pbar = tqdm(total=len(heatmap))
+    orient = case[0]
+    routing = case[1]
+    axis_lock = case[2]
+    orient_alternation = case[3]
+    pix_dim=pixel_size()
+    incl = find_slope(area_de_interesse)
+    placa_projection(incl)
+    print(placa_dimx, placa_dimy)
+    dimention_to_pixel()
+    print("Inclinação: {}".format(incl))
+    placas_locadas = np.full_like(area_de_interesse, None)
+    if axis_lock == True and orient_alternation == False:
+        place_panels_aligned()
+    elif axis_lock == False and orient_alternation == True:
+        place_panels_alternate_orient()
+    elif axis_lock == True and orient_alternation == True:
+        print("Não há função para este caso!")
+        place_panels(lista_placas, placas_counter, placas_locadas, routing, orient_alternation, pbar)
+    else:
+        place_panels(lista_placas, placas_counter, placas_locadas, routing, orient_alternation, pbar)
+    #while placas_counter < needed_placas:
+    #    pbar_best = tqdm(total=len(heatmap))
+    #    best_placing(placas_counter, lista_placas, placas_locadas, routing, orient_alternation, pbar_best)
+    placas_img(case_index)
+    overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+
 
 """Variáveis Globais"""
+core_count=multiprocessing.cpu_count()
+print("Número de núcleos da CPU: {}".format(core_count))
+
 pix_x = None
 pix_y = None
 pix_area = None
@@ -678,14 +717,13 @@ panel_pix_x = 11  #trocar depois nas funções
 panel_pix_y = 21
 
 
-
 """Inicialização"""
 #Ordem: orient, routing, axis_lock, orient_alternation
 
 cases = [
-#['Hor', 'top-left', False, False],
-#['Hor', 'top-right', False, False],
-#['Hor', 'bottom-left', False, False],
+['Hor', 'top-left', False, False],
+['Hor', 'top-right', False, False],
+['Hor', 'bottom-left', False, False],
 ['Hor', 'bottom-right', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
@@ -702,6 +740,7 @@ heatmap = pickle.load(file_heatmap)
 highest_sha_value = highest_value_in_array(heatmap)
 print("O maior valor de sombreamento é {}".format(highest_sha_value))
 
+"""
 #Proposta 01
 
 #execução de todos os casos
@@ -734,6 +773,8 @@ for case in cases:
         best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+"""
+
 
 """
 for case in cases:
@@ -756,6 +797,14 @@ for case in cases:
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
 """
+
+pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
+results = pool.imap_unordered(case_resolution_normal, cases, chunksize=1)
+for result in results:
+    Print("Terminado!")
+pool.close() # No more work
+pool.join() # Wait for completion
+
 print_placas()
 
 python_array_to_pickle(lista_placas, 'lista_placas')

@@ -175,4 +175,54 @@ def highest_value_in_array(array):
         for number in line:
             if number > temp_highest:
                 temp_highest = number
-    return temp_highest        
+    return temp_highest
+
+def ordered_values_until(number):
+    lista = []
+    for k in range (0,number,1):
+        lista.append(k)
+    return lista
+
+def all_combinations(lines, columns):
+    comb = []
+    for i in range (0, lines, 1):
+        for j in range(0, columns, 1):
+            comb.append([i,j])
+    return comb
+
+def all_combinations_range(i0, i1, j0, j1):
+    comb = []
+    for i in range(i0, i1, 1):
+        for j in range(j0, j1, 1):
+            comb.append([i, j])
+    return comb
+
+def all_combinations_placa(i0, i1, j0, j1):
+    comb = []
+    for i in range(i0, i1, -1):
+        for j in range(j0, j1, 1):
+            comb.append([i, j])
+    return comb
+
+def results_to_list(results):
+    output = []
+    for res in results:
+        print("Tem resultado!")
+        output.append(res)
+    return output
+
+
+def list_to_array_reshape(lista, x, y):
+    array = []
+    counter = 0
+    line = []
+    for i in lista:
+        if counter < x-1:
+            line.append(i)
+            counter += 1
+        else:
+            line.append(i)
+            array.append(line)
+            counter = 0
+            line = []
+    return array

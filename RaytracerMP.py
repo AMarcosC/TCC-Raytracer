@@ -38,51 +38,12 @@ from PIL import Image
 from numpy import linalg
 from colour import Color
 import pickle
-import threading
 import multiprocessing
 from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
-import concurrent.futures
-import time
 from tqdm import tqdm
 
 """Funções Voltadas ao problema"""
-
-def ordered_values_until(number):
-    lista = []
-    for k in range (0,number,1):
-        lista.append(k)
-    return lista
-
-def all_combinations(lines, columns):
-    comb = []
-    for i in range (0, lines, 1):
-        for j in range(0, columns, 1):
-            comb.append([i,j])
-    return comb
-
-def results_to_list(results):
-    output = []
-    for res in results:
-        print("Tem resultado!")
-        output.append(res)
-    return output
-
-
-def list_to_array_reshape(lista, x, y):
-    array = []
-    counter = 0
-    line = []
-    for i in lista:
-        if counter < x-1:
-            line.append(i)
-            counter += 1
-        else:
-            line.append(i)
-            array.append(line)
-            counter = 0
-            line = []
-    return array
 
 
 def ray_p(t,e,dir):  #fórmula que define o ponto no espaço atingido por um raio
