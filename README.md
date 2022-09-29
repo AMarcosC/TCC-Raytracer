@@ -35,8 +35,8 @@ A execução de "PanelPlacer.py" pode resultar em erros, visto que esta versão 
 - Mudança de orientação ao longo da varredura: o programa tem prioridade para inserir placas horizontalmente, mas se em algum lugar ele só conseguir colocar placas verticalmente, ele insere, a depender do desejo do usuário, e vice-versa;
 - Varredura da imagem pode começar pelos quatro cantos da imagem (top-left, bottom-left, top-right, bottom-right);
 - Placas podem ser inseridas com alinhamento relativo à primeira placa inserida (trata-se de outro conceito, mais promissor que a tentativa anterior);
-- Inserção de placas na região sombreada, na melhor posição possível (placas passam a ter um "score" que determina a melhor posição).
-- Uso de multiprocessamento no traçado de raios (RaytracerMP.py). O programa agora usa todos os núcleos do processador menos 1, para evitar travamento/superaquecimento.
+- Inserção de placas na região sombreada, na melhor posição possível (placas passam a ter um "score" que determina a melhor posição);
+- Uso de multiprocessamento no traçado de raios (RaytracerMP.py). O programa agora usa todos os núcleos do processador menos 1, para evitar travamento/superaquecimento. Recomenda-se a execução de RaytracerMP.py pelo terminal, para que seja exibida a barra de indicação do estado do processo.
 
 ## Melhorias Pendentes
 
