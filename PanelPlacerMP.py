@@ -492,19 +492,19 @@ def return_all_grid_points(case, routing, orient_alternation):
                 return all_grid_points(i,j,case)
 
 
-def return_placa_color(ident):
+def return_placa_color(ident, lista_placas):
     for placa in lista_placas:
         if placa.id == ident:
             return placa.color
 
-def placas_img(c_index):
+def placas_img(c_index, placas_locadas, lista_placas):
     soma = placas_locadas
     img = []
     for i in soma:
         line = []
         for j in i:
             if j != None and j >= 0:
-                line.append(return_placa_color(j))
+                line.append(return_placa_color(j, lista_placas))
             else:
                 line.append([255,255,255,0])
         img.append(line)
@@ -690,8 +690,8 @@ def case_resolution_normal(case):
     #while placas_counter < needed_placas:
     #    pbar_best = tqdm(total=len(heatmap))
     #    best_placing(placas_counter, lista_placas, placas_locadas, routing, orient_alternation, pbar_best)
-    placas_img(case_index)
-    overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+    placas_img(case_index, placas_locadas, lista_placas)
+    #overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
 
 
 """Variáveis Globais"""
@@ -801,7 +801,7 @@ for case in cases:
 pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
 results = pool.imap_unordered(case_resolution_normal, cases, chunksize=1)
 for result in results:
-    Print("Terminado!")
+    print("Terminado!")
 pool.close() # No more work
 pool.join() # Wait for completion
 
