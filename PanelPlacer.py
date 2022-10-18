@@ -3,6 +3,8 @@ import math
 from BasicFunctions import *
 from colour import Color
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 """
 Observações:
@@ -26,7 +28,7 @@ Próximos passos:
 class Placa:  #classse que define as propriedades de um objeto genérico qualquer
     def __init__(self, id, coord, edges, score):
         self.id = id
-        self.color = random_color()
+        self.color = random_bright_color()
         self.coord = coord
         self.edges = edges
         self.closest_shadow = None
@@ -508,6 +510,11 @@ def placas_img(c_index):
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
+    img2 = Image.open('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
+    img0 = ImageDraw.Draw(img2)
+    for placa in lista_placas:
+        img0.text((placa.edges[0][0], placa.edges[0][1]), "{}".format(placa.id), fill=(0,0,0))
+    img2.save('output/{}-Placas_{}_orient-{}_{}placas-NUMBERED.png'.format(c_index, routing, orient, placas_counter))
     return soma
 
 
@@ -703,7 +710,7 @@ highest_sha_value = highest_value_in_array(heatmap)
 print("O maior valor de sombreamento é {}".format(highest_sha_value))
 
 #Proposta 01
-
+"""
 #execução de todos os casos
 for case in cases:
     case_index = cases.index(case)
@@ -734,8 +741,8 @@ for case in cases:
         best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
-
 """
+
 for case in cases:
     case_index = cases.index(case)
     print("-------------------------")
@@ -755,7 +762,7 @@ for case in cases:
     place_panels_in_grid(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
-"""
+
 print_placas()
 
 python_array_to_pickle(lista_placas, 'lista_placas')

@@ -155,6 +155,10 @@ def random_color():
     color = list(np.random.choice(range(256), size=3))
     return ([color[0], color[1], color[2], 255])
 
+def random_bright_color():
+    color = list(np.random.choice(range(80,256), size=3))
+    return ([color[0], color[1], color[2], 255])
+
 def overlay_images(front_image, back_image, final_image):
     img1 = Image.open(front_image)
     img1 = img1.convert("RGBA")

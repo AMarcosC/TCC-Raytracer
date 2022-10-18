@@ -3,6 +3,8 @@ import math
 from BasicFunctions import *
 from colour import Color
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
 
 """
 Observações:
@@ -507,6 +509,11 @@ def placas_img(c_index):
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
+    img2 = Image.open('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
+    img0 = ImageDraw.Draw(img2)
+    for placa in lista_placas:
+        img0.text((placa.edges[0][0], placa.edges[0][1]), "{}".format(placa.id), fill=(0,0,0))
+    img2.save('output/{}-Placas_{}_orient-{}_{}placas-NUMBERED.png'.format(c_index, routing, orient, placas_counter))
     return soma
 
 
