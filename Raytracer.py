@@ -366,6 +366,7 @@ def create_shape(intensity):
 
 """Variáveis Globais e Locais"""
 
+offset = 0
 pixel_por_metro = 50
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
@@ -439,7 +440,7 @@ area_de_interesse = area_of_interest(coordenadas_pixels)  #area_de_interesse: ma
 for time in sunpath:
     cont = cont+1
     print("----- Etapa {} de {} ------".format(cont,len(sunpath)))
-    luz_dir = polar_to_vector_ajustado(time[0], time[1])
+    luz_dir = polar_to_vector_ajustado(time[0], time[1], offset)
     tabela1 = trace_tri()  #transcreve os raios emitidos e a sua resposta em uma matriz
     heatmap.append(shadow_to_heatmap(tabela1))
     img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png

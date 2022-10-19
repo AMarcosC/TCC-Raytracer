@@ -405,7 +405,7 @@ def create_shape(intensity):
 core_count=multiprocessing.cpu_count()
 print("Número de núcleos da CPU: {}".format(core_count))
 
-offset = 30
+offset = 0
 pixel_por_metro = 10
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
