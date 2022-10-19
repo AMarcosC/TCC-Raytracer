@@ -134,8 +134,8 @@ def polar_to_vector(el,az):  #converte as coordenadas polares do sol em um vetor
     z = math.sin(math.radians(el))
     return vec3(x, y, z)
 
-def polar_to_vector_ajustado(el,az):  #converte as coordenadas polares do sol em um vetor unitário, considerando azimute com 0° no norte e sentido horário
-    az_ajustado = azimuth(az)
+def polar_to_vector_ajustado(el,az,offset):  #converte as coordenadas polares do sol em um vetor unitário, considerando azimute com 0° no norte e sentido horário
+    az_ajustado = azimuth(az) - offset
     x = math.cos(math.radians(el))*math.cos(math.radians(az_ajustado))
     y = math.cos(math.radians(el))*math.sin(math.radians(az_ajustado))
     z = math.sin(math.radians(el))

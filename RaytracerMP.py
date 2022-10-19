@@ -405,8 +405,8 @@ def create_shape(intensity):
 core_count=multiprocessing.cpu_count()
 print("Número de núcleos da CPU: {}".format(core_count))
 
-
-pixel_por_metro = 20
+offset = 30
+pixel_por_metro = 10
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
 
@@ -459,10 +459,10 @@ sunpath = [
 #[57.08,	44.88],
 #[65.24,	19.86],
 #[65.84,	344.63],
-[58.45,	317.74],
-[47.01,	303.09],
+#[58.45,	317.74],
+#[47.01,	303.09],
 [33.96,	295],
-[20.2, 290.18],
+#[20.2, 290.18],
 #[6.09, 287.18],
 #[-0.833, 286.17]
 ]
@@ -485,7 +485,7 @@ table = np.full((n_y, n_x), None)  #matriz vazia
 for time in sunpath:
     cont = cont+1
     print("----- Etapa {} de {} ------".format(cont,len(sunpath)))
-    luz_dir = polar_to_vector_ajustado(time[0], time[1])
+    luz_dir = polar_to_vector_ajustado(time[0], time[1], offset)
     tabela1 = trace_tri()  #transcreve os raios emitidos e a sua resposta em uma matriz
     heatmap.append(shadow_to_heatmap(tabela1))
     img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png
