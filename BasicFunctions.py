@@ -9,6 +9,9 @@ import numpy as np
 import sys
 import pickle
 from PIL import Image
+from colour import Color
+from PIL import ImageDraw
+from PIL import ImageFont
 
 """Classes"""
 
@@ -239,3 +242,37 @@ def list_to_array_reshape(lista, x, y):
             counter = 0
             line = []
     return array
+
+def distribute_for_three(a):
+    if a % 3 == 0:
+        return [a//3, a//3, a//3]
+    elif a % 3 == 1:
+        return [a//3, a//3, (a//3)+1]
+    elif a % 3 == 2:
+        return [a//3, (a//3)+1, (a//3)+1]
+
+def distribute_for_two(a):
+    if a % 2 == 0:
+        return [a//2, a//2]
+    elif a % 2 == 1:
+        return [(a//2)+1, a//2]
+
+def color_range_image(list_colors):
+    spacing = 50
+    width = 3*spacing
+    height = len(list_colors)*spacing
+    image_m = np.full((height, width, 4), [255,255,255,255])
+    cont = 0
+    cont_n = 0
+    for c in list_colors:
+        for i in range(cont*spacing, (cont+1)*spacing, 1):
+            for j in range(0, spacing, 1):
+                image_m[i][j] = [c.red*255, c.green*255, c.blue*255, 255]
+        cont = cont + 1
+    img_color = Image.fromarray(np.uint8(image_m)).convert('RGBA')  #Transformando a matriz em uma imagem .png
+    img0 = ImageDraw.Draw(img_color)
+    myFont = ImageFont.truetype('utilities/Roboto-Black.ttf', 30)
+    for c_n in list_colors:
+        img0.text([60, (50*cont_n) + 10], "{}".format(cont_n), font=myFont, fill=(0,0,0))
+        cont_n = cont_n + 1
+    img_color.save('output/ColorDict.png')

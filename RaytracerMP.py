@@ -307,8 +307,8 @@ def shadow_to_heatmap(tabela):  #transforma os valores do vetor heatmap em uma t
 
 
 def heatmap_to_img(heatmap):
-    initial_color = Color("green")
-    colors = list(initial_color.range_to(Color("red"),len(heatmap)+1))
+    numero_cores = len(heatmap)+1
+    colors = color_range(numero_cores)
     soma = np.zeros((n_y,n_x))
     img = []
     for time in heatmap:
@@ -323,6 +323,7 @@ def heatmap_to_img(heatmap):
         img.append(line)
     img1 = Image.fromarray(np.uint8(img)).convert('RGBA')  #Transformando a matriz em uma imagem .png
     img1.save('output/Heatmap.png')
+    color_range_image(colors)
     return soma
 
 
@@ -372,34 +373,33 @@ def area_of_interest_check(c):
     return intercept_point
 
 
-def silhueta_points(mat_tela, i, j, intensity):  #função que retorna apenas os pontos da silhueta das áreas de determinada intensidade
-    if i == 0 or j == 0 or i == (len(mat_tela)-1) or j == (len(mat_tela[0])-1):
-        return False
-    elif (mat_tela[i-1][j-1] != intensity or
-        mat_tela[i-1][j] != intensity or
-        mat_tela[i-1][j+1] != intensity or
-        mat_tela[i][j-1] != intensity or
-        mat_tela[i][j+1] != intensity or
-        mat_tela[i+1][j-1] != intensity or
-        mat_tela[i+1][j] != intensity or
-        mat_tela[i+1][j+1] != intensity):
-        return True
-    else:
-        return False
-
-
-def create_shape(intensity):
-    if intensity < 0 and intensity > len(heatmap):
-        print('Não há região com a intensidade determinada!')
-    for i in range (0,len(area_de_interesse),1):
-        for j in range (0,len(area_de_interesse[0]),1):
-            vect = area_de_interesse[i][j]
-            if vect != None and heatmap_somado[i][j] == intensity and silhueta_points(heatmap_somado, i, j, intensity):
-                #shape_points.append(vect)  se quisesse colocar como vetor
-                shape_points.append([vect.x, vect.y])
-                print("x:{} y:{}".format(vect.x, vect.y))
-
-
+def color_range(n_colors):
+    if n_colors == 1:
+        return [Color("green")]
+    elif n_colors == 2:
+        return [Color("green"), Color("red")]
+    elif n_colors == 3:
+        return [Color("white"), Color("green"), Color("red")]
+    elif n_colors == 4:
+        return [Color("white"), Color("green"), Color("red"), Color("#581845")]
+    elif n_colors >= 5:
+        final_range = []
+        color_division = distribute_for_two(n_colors)
+        color0 = Color("blue")
+        color1 = Color("yellow")
+        range1 = list(color0.range_to(color1,color_division[0]+2))
+        del range1[color_division[0]+1]
+        del range1[color_division[0]]
+        color2 = Color("red")
+        range2 = list(color1.range_to(color2,color_division[1]+2))
+        del range2[color_division[1]+1]
+        del range2[color_division[1]]
+        for c1 in range1:
+            final_range.append(c1)
+        for c2 in range2:
+            final_range.append(c2)
+        print(final_range)
+        return final_range
 
 """Variáveis Globais e Locais"""
 core_count=multiprocessing.cpu_count()
@@ -453,14 +453,14 @@ eps = 0.00025  #uma distância para afastar o ponto do próprio objeto
 sunpath = [
 #[-0.8330, 73.97],
 #[4.18,	73.26],
-#[18.33, 70.43],
-#[32.15,	65.89],
-#[45.34,	58.37],
-#[57.08,	44.88],
-#[65.24,	19.86],
-#[65.84,	344.63],
-#[58.45,	317.74],
-#[47.01,	303.09],
+[18.33, 70.43],
+[32.15,	65.89],
+[45.34,	58.37],
+[57.08,	44.88],
+[65.24,	19.86],
+[65.84,	344.63],
+[58.45,	317.74],
+[47.01,	303.09],
 [33.96,	295],
 #[20.2, 290.18],
 #[6.09, 287.18],
