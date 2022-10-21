@@ -13,11 +13,6 @@ Observações:
 Porém ela pode ser utilizada para verificar a inclinação do telhado.
 
 Próximos passos:
-    - Alternar entre vertical e horizontal
-    - Determinar eixos de implantação para executabilidade (placas alinhadas)
-    - Testar várias ordens de colocação (outras heurísticas)
-    - Considerar inclinação
-    - Permitir a colocação de placas em áreas de sombreamento leve (usar < ou > em vez de =)
     - Permitir exportação da locação das placas (coordenadas)
 
 """
@@ -74,47 +69,97 @@ def slope(p0, p1):
     dy = p1.y - p0.y
     dz = p1.z - p0.z
     dl = math.sqrt((dx**2) + (dy**2))
-    return (abs(dz/dl))
+    return (abs(dz/dl))  #radianos
 
 def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor que esse valor venha do modelo
-    for i in range (0, len(ar), 1):
-        for j in range (0, len(ar[0])):
-            if not_surrounded_by(ar, i, j, None):
-                temp = 0
-                or_temp = None
-                if slope(ar[i][j-1], ar[i][j+1]) > temp:
-                    temp = slope(ar[i][j-1], ar[i][j+1])
-                    or_temp = 'x'
-                elif slope(ar[i-1][j], ar[i+1][j]) > temp:
-                    temp = slope(ar[i-1][j], ar[i+1][j])
-                    or_temp = 'y'
-                elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:  #corrigir depois, criar uma margem de erro para inclinação
-                    temp = slope(ar[i-1][j-1], ar[i+1][j+1])
-                    or_temp = 'other'
-                elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
-                    temp = slope(ar[i+1][j-1], ar[i-1][j+1])
-                    or_temp = 'other'
-                else:     #caso em que a inclinação é zero
+    global incl_pref, incl_value, incl_orient
+    if incl_pref == "Telhado":
+        for i in range (0, len(ar), 1):
+            for j in range (0, len(ar[0])):
+                if not_surrounded_by(ar, i, j, None):
                     temp = 0
-                    or_temp = 'x'
-                return (temp, or_temp)
+                    or_temp = None
+                    if slope(ar[i][j-1], ar[i][j+1]) > temp:
+                        temp = slope(ar[i][j-1], ar[i][j+1])
+                        or_temp = 'x'
+                    elif slope(ar[i-1][j], ar[i+1][j]) > temp:
+                        temp = slope(ar[i-1][j], ar[i+1][j])
+                        or_temp = 'y'
+                    elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:  #corrigir depois, criar uma margem de erro para inclinação
+                        temp = slope(ar[i-1][j-1], ar[i+1][j+1])
+                        or_temp = 'other'
+                    elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
+                        temp = slope(ar[i+1][j-1], ar[i-1][j+1])
+                        or_temp = 'other'
+                    else:     #caso em que a inclinação é zero
+                        temp = 0
+                        or_temp = 'x'
+                    return (temp, or_temp)
+    elif incl_pref == "Placa":
+        temp = math.radians(incl_value)
+        or_temp = incl_orient
+        return (temp, or_temp)
 
 def placa_projection():
     global placa_dim1, placa_dim2, placa_dimx, placa_dimy
     alpha = math.cos(math.atan(incl[0]))
     print(alpha)
-    if orient == 'Vert' and incl[1] == 'x':
+    if orient == 'Vert' and (incl[1] == 'x' or incl[1] == '-x'):
         placa_dimx = menor(placa_dim1, placa_dim2) * alpha
         placa_dimy = maior(placa_dim1, placa_dim2)
-    elif orient == 'Vert' and incl[1] == 'y':
+    elif orient == 'Vert' and (incl[1] == 'y' or incl[1] == '-y'):
         placa_dimx = menor(placa_dim1, placa_dim2)
         placa_dimy = maior(placa_dim1, placa_dim2) * alpha
-    elif orient =='Hor' and incl[1] == 'x':
+    elif orient =='Hor' and (incl[1] == 'x' or incl[1] == '-x'):
         placa_dimx = maior(placa_dim1, placa_dim2) * alpha
         placa_dimy = menor(placa_dim1, placa_dim2)
-    elif orient =='Hor' and incl[1] == 'y':
+    elif orient =='Hor' and (incl[1] == 'y' or incl[1] == '-y'):
         placa_dimx = maior(placa_dim1, placa_dim2)
         placa_dimy = menor(placa_dim1, placa_dim2) * alpha
+
+
+def z_diff(ext, ori, val):  #extremidades, sentido da incl da placa, angulo
+    if ori == 'x':
+        z_keep = ext[0].z
+        h_0 = ext[0].x
+        h_1 = ext[1].x
+        dist = abs(h_1 - h_0)
+        z_diff_v = dist*math.tan(val)
+        z_new = z_keep + z_diff_v
+        ext[1].z = z_new
+        ext[3].z = z_new
+        return ext
+    elif ori == '-x':
+        z_keep = ext[1].z
+        h_0 = ext[0].x
+        h_1 = ext[1].x
+        dist = abs(h_1 - h_0)
+        z_diff_v = dist*math.tan(val)
+        z_new = z_keep + z_diff_v
+        ext[0].z = z_new
+        ext[2].z = z_new
+        return ext
+    elif ori == 'y':
+        z_keep = ext[2].z
+        h_0 = ext[0].y
+        h_1 = ext[2].y
+        dist = abs(h_1 - h_0)
+        z_diff_v = dist*math.tan(val)
+        z_new = z_keep + z_diff_v
+        ext[0].z = z_new
+        ext[1].z = z_new
+        return ext
+    elif ori == '-y':
+        z_keep = ext[0].z
+        h_0 = ext[0].y
+        h_1 = ext[2].y
+        dist = abs(h_1 - h_0)
+        z_diff_v = dist*math.tan(val)
+        z_new = z_keep + z_diff_v
+        ext[2].z = z_new
+        ext[3].z = z_new
+        return ext
+
 
 """
 #esta versão da função garante que o número de pixels da placa
@@ -322,7 +367,7 @@ def execute_placing(i,j,score):
     for u in range (i, i-panel_pix_y, -1):
         for v in range (j, j+panel_pix_x, 1):
             placas_locadas[u][v] = placas_counter
-    lista_placas.append(Placa(placas_counter, area_de_interesse[i][j], panel_edge_pixels(i,j), score))
+    lista_placas.append(Placa(placas_counter, panel_edge_coord(i,j), panel_edge_pixels(i,j), score))
     print("---------------------------")
     print("Placa locada: eixo {} {}".format(i,j))
     print("---------------------------")
@@ -335,6 +380,18 @@ def panel_edge_pixels(i,j):
     b_r = [j+panel_pix_x-1, i]
     return [t_l, t_r, b_l, b_r]
 
+def panel_edge_coord(i,j):
+    global incl_pref
+    ed = panel_edge_pixels(i,j)
+    t_l_coord = area_de_interesse[ed[0][1]][ed[0][0]]
+    t_r_coord = area_de_interesse[ed[1][1]][ed[1][0]]
+    b_l_coord = area_de_interesse[ed[2][1]][ed[2][0]]
+    b_r_coord = area_de_interesse[ed[3][1]][ed[3][0]]
+    coord_result = [t_l_coord, t_r_coord, b_l_coord, b_r_coord]
+    if incl_pref == "Placa":
+        return z_diff(coord_result, incl[1], incl[0])
+    elif incl_pref == "Telhado":
+        return coord_result
 
 def place_panels():
     global placas_counter, lista_placas
@@ -555,7 +612,11 @@ def print_placas():  #para debug
     print("------ Listagem das Placas ------")
     for placa in lista_placas:
         print("---- Placa {} ----".format(placa.id))
-        print("Coordenada: x:{} y:{} z:{}".format(placa.coord.x, placa.coord.y, placa.coord.z))
+        print("Coordenadas:")
+        print(" Top Left: x:{} y:{} z:{}".format(placa.coord[0].x, placa.coord[0].y, placa.coord[0].z))
+        print(" Top Right: x:{} y:{} z:{}".format(placa.coord[1].x, placa.coord[1].y, placa.coord[1].z))
+        print(" Bottom Left: x:{} y:{} z:{}".format(placa.coord[2].x, placa.coord[2].y, placa.coord[2].z))
+        print(" Bottom Right: x:{} y:{} z:{}".format(placa.coord[3].x, placa.coord[3].y, placa.coord[3].z))
         print("Bordas em px: {}".format(placa.edges))
         print("Score: {}".format(placa.score))
     print("---------------------------------")
@@ -664,6 +725,7 @@ def highest_score_position(grid_list):
             temp_index = i
     return [temp_x, temp_y, temp_score, temp_index]
 
+#z:1.6381669565056591
 
 """Variáveis Globais"""
 pix_x = None
@@ -673,7 +735,10 @@ pix_area = None
 needed_placas = 21
 placa_dim1 = 1.65
 placa_dim2 = 1
-orient = "Hor"
+incl_pref = "Placa"  #Pode ser "Telhado" ou "Placa"
+incl_value = 20
+incl_orient = 'y'
+orient = "Vert"
 routing = "bottom-right"
 axis_lock = False
 orient_alternation = False
