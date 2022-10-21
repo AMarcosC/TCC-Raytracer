@@ -735,9 +735,9 @@ pix_area = None
 needed_placas = 21
 placa_dim1 = 1.65
 placa_dim2 = 1
-incl_pref = "Placa"  #Pode ser "Telhado" ou "Placa"
-incl_value = 20
-incl_orient = 'y'
+incl_pref = "Telhado"  #Pode ser "Telhado" ou "Placa"
+incl_value = 0
+incl_orient = 'x'
 orient = "Vert"
 routing = "bottom-right"
 axis_lock = False
@@ -763,9 +763,6 @@ cases = [
 #['Vert', 'bottom-right', False, True],
 ]
 
-lista_placas = []
-placas_counter = 0
-
 file_area = open('area', 'rb')
 area_de_interesse = pickle.load(file_area)
 
@@ -778,6 +775,8 @@ print("O maior valor de sombreamento é {}".format(highest_sha_value))
 """
 #execução de todos os casos
 for case in cases:
+    lista_placas = []
+    placas_counter = 0
     case_index = cases.index(case)
     print("-------------------------")
     print("----Iniciando caso {}----".format(cases.index(case)))
@@ -806,9 +805,13 @@ for case in cases:
         best_placing()
     placas_img(case_index)
     overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
+    print_placas()
+    python_array_to_pickle(lista_placas, 'lista_placas')
 """
 
 for case in cases:
+    lista_placas = []
+    placas_counter = 0
     case_index = cases.index(case)
     print("-------------------------")
     print("----Iniciando caso {}----".format(cases.index(case)))
@@ -827,7 +830,6 @@ for case in cases:
     place_panels_in_grid(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
-
-print_placas()
-
-python_array_to_pickle(lista_placas, 'lista_placas')
+    print_placas()
+    python_array_to_pickle(lista_placas, 'lista_placas')
+    list_to_obj_file(lista_placas)

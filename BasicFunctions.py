@@ -276,3 +276,54 @@ def color_range_image(list_colors):
         img0.text([60, (50*cont_n) + 10], "{}".format(cont_n), font=myFont, fill=(0,0,0))
         cont_n = cont_n + 1
     img_color.save('output/ColorDict.png')
+
+def triangle_normal(p1, p2, p3):
+    A = p2 - p1
+    B = p3 - p1
+    Nx = (A.y * B.z) - (A.z * B.y)
+    Ny = (A.z * B.x) - (A.x * B.z)
+    Nz = (A.x * B.y) - (A.y * B.x)
+    Nmod = ((Nx**2) + (Ny**2) + (Nz**2))**(1/2)
+    Nxx = Nx / Nmod
+    Nyy = Ny / Nmod
+    Nzz = Nz / Nmod
+    N = [Nxx, Nyy, Nzz]
+    return N
+
+def panel_to_list(p_list):
+    v = 1
+    n = 1
+    v_list = []
+    n_list = []
+    f_list = []
+    for panel in p_list:
+        p0 = panel.coord[0]
+        p1 = panel.coord[1]
+        p2 = panel.coord[2]
+        p3 = panel.coord[3]
+        v_list.append([p0.x,p0.y,p0.z])
+        v_list.append([p1.x,p1.y,p1.z])
+        v_list.append([p2.x,p2.y,p2.z])
+        v_list.append([p3.x,p3.y,p3.z])
+        n_list.append(triangle_normal(p0, p2, p3))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v,n,v+2,n,v+3,n))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v,n,v+3,n,v+1,n))
+        v = v + 4
+        n = n + 1
+    return (v_list, n_list, f_list)
+
+
+def list_to_obj_file(p_list):
+    lists = panel_to_list(p_list)
+    file = open("Panels-3D.obj","w+")
+    file.write("#Modelo 3d das placas - Antonio Marcos Cruz da Paz\n")
+    file.write("o Placas\n")
+    for v in lists[0]:
+        file.write("v {} {} {}\n".format(v[0],v[1],v[2]))
+    for n in lists[1]:
+        file.write("vn {:.20f} {:.20f} {:.20f}\n".format(n[0], n[1], n[2]))
+    file.write("usemtl None\n")
+    file.write("s 1\n")
+    for f in lists[2]:
+        file.write("f {}\n".format(f))
+    file.close()

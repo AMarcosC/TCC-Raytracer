@@ -1,3 +1,7 @@
+import numpy as np
+import math
+from BasicFunctions import *
+    
 
 def file_read(file):
     vertices = []
