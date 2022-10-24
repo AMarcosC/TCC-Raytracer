@@ -490,6 +490,46 @@ def place_panels_in_grid(case):
         del grid_filter[p_sha[3]]
 
 
+def place_panels_in_grids_possible(case):
+    global placas_counter, panel_pix_x, panel_pix_y, lista_placas, needed_placas, placas_locadas
+    grid_init_coord = combinations_in_grid()
+    best_placas_locadas = np.full_like(area_de_interesse, None)
+    best_placas_counter = 0
+    best_lista_placas = []
+    best_score = -1
+    for g in grid_init_coord:
+        placas_locadas = np.full_like(area_de_interesse, None)
+        placas_counter = 0
+        lista_placas = []
+        grid = all_grid_points(g[0], g[1], case)
+        grid_filter = []
+        grid_optimum = []
+        for p in grid:
+            if placing_possible_in_shadow(p[1], p[0]) == True:
+                p[2] = panel_score(p[1], p[0])
+                if p[2] > 0.999:
+                    grid_optimum.append(p)
+                else:
+                    grid_filter.append(p)
+        for i in range(0, len(grid_optimum), 1):
+            if placas_counter < needed_placas:
+                execute_placing(grid_optimum[i][1], grid_optimum[i][0], grid_optimum[i][2])
+        while placas_counter < needed_placas:
+            p_sha = highest_score_position(grid_filter)
+            execute_placing(p_sha[1], p_sha[0], p_sha[2])
+            del grid_filter[p_sha[3]]
+        temp_score = overall_score(lista_placas)
+        if temp_score >= best_score:
+            best_placas_locadas = placas_locadas
+            best_placas_counter = placas_counter
+            best_lista_placas = lista_placas
+            best_score = temp_score
+    placas_locadas = best_placas_locadas
+    placas_counter = best_placas_counter
+    lista_placas = best_lista_placas
+    print('Melhor score: {}'.format(best_score))
+
+
 
 
 def all_grid_points(i,j,case):
@@ -549,6 +589,20 @@ def return_all_grid_points(case):
                 return all_grid_points(i,j,case)
 
 
+def combinations_in_grid():
+    global panel_pix_x, panel_pix_y
+    init_grid = []
+    for i in range(0, panel_pix_y, 1):
+        for j in range(0, panel_pix_x, 1):
+            init_grid.append([i, j])
+    return init_grid
+
+def overall_score(p_list):
+    os = 0
+    for p in p_list:
+        os += p.score
+    return os
+
 def return_placa_color(ident):
     for placa in lista_placas:
         if placa.id == ident:
@@ -569,8 +623,12 @@ def placas_img(c_index):
     img1.save('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
     img2 = Image.open('output/{}-Placas_{}_orient-{}_{}placas.png'.format(c_index, routing, orient, placas_counter))
     img0 = ImageDraw.Draw(img2)
+    myFont = ImageFont.truetype('utilities/Roboto-Black.ttf', int(panel_pix_x/3))
     for placa in lista_placas:
-        img0.text((placa.edges[0][0], placa.edges[0][1]), "{}".format(placa.id), fill=(0,0,0))
+        if panel_pix_x > 90:
+            img0.text((placa.edges[0][0], placa.edges[0][1]), "{}".format(placa.id), font=myFont, fill=(0,0,0))
+        else:
+            img0.text((placa.edges[0][0], placa.edges[0][1]), "{}".format(placa.id), fill=(0,0,0))
     img2.save('output/{}-Placas_{}_orient-{}_{}placas-NUMBERED.png'.format(c_index, routing, orient, placas_counter))
     return soma
 
@@ -827,7 +885,7 @@ for case in cases:
     dimention_to_pixel()
     print("Inclinação: {}".format(incl))
     placas_locadas = np.full_like(area_de_interesse, None)
-    place_panels_in_grid(routing)
+    place_panels_in_grids_possible(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
     print_placas()
