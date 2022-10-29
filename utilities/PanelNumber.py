@@ -8,11 +8,11 @@ from PIL import ImageFont
 
 change_to_current_dir()
 
-file_placas = open('lista_placas', 'rb')
+file_placas = open('lista_placas_dur3', 'rb')
 placas = pickle.load(file_placas)
 print(placas)
 
-nome_imagem = r"0-Placas_bottom-left_orient-Vert_29placas.png"
+nome_imagem = r"0-Placas_bottom-left_orient-Vert_22placas.png"
 
 myFont = ImageFont.truetype('Roboto-Black.ttf', 65)
 
