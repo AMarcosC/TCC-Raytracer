@@ -313,6 +313,65 @@ def panel_to_list(p_list):
     return (v_list, n_list, f_list)
 
 
+def panel_to_list_new(p_list,esp):
+    v = 1
+    n = 1
+    v_list = []
+    n_list = []
+    f_list = []
+    o_list = []
+    for panel in p_list:
+        o_temp = []
+        p0 = panel.coord[0]
+        p1 = panel.coord[1]
+        p2 = panel.coord[2]
+        p3 = panel.coord[3]
+        p4 = vec3(p0.x, p0.y, p0.z + esp)
+        p5 = vec3(p1.x, p1.y, p1.z + esp)
+        p6 = vec3(p2.x, p2.y, p2.z + esp)
+        p7 = vec3(p3.x, p3.y, p3.z + esp)
+        #vértices
+        v_list.append([p0.x,p0.y,p0.z])
+        v_list.append([p1.x,p1.y,p1.z])
+        v_list.append([p2.x,p2.y,p2.z])
+        v_list.append([p3.x,p3.y,p3.z])
+        v_list.append([p4.x,p4.y,p4.z])
+        v_list.append([p5.x,p5.y,p5.z])
+        v_list.append([p6.x,p6.y,p6.z])
+        v_list.append([p7.x,p7.y,p7.z])
+        #normais
+        n_list.append(triangle_normal(p0, p1, p2))
+        n_list.append(triangle_normal(p4, p0, p2))
+        n_list.append(triangle_normal(p5, p3, p1))
+        n_list.append(triangle_normal(p4, p5, p0))
+        n_list.append(triangle_normal(p2, p7, p6))
+        n_list.append(triangle_normal(p4, p7, p5))
+        #faces
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v,n,v+1,n,v+2,n))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+1,n,v+3,n,v+2,n))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+4,n+1,v+0,n+1,v+2,n+1))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+4,n+1,v+2,n+1,v+6,n+1))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+5,n+2,v+3,n+2,v+1,n+2))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+5,n+2,v+7,n+2,v+3,n+2))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+4,n+3,v+5,n+3,v+0,n+3))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+5,n+3,v+1,n+3,v+0,n+3))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+2,n+4,v+7,n+4,v+6,n+4))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+2,n+4,v+3,n+4,v+7,n+4))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+4,n+5,v+7,n+5,v+5,n+5))
+        f_list.append(r'{}/{} {}/{} {}/{}'.format(v+4,n+5,v+6,n+5,v+7,n+5))
+        #indices
+        o_temp.append(v_list)
+        o_temp.append(n_list)
+        o_temp.append(f_list)
+        o_list.append(o_temp)
+        v_list = []
+        n_list = []
+        f_list = []
+        v = v + 8
+        n = n + 6
+    return (o_list)
+
+
 def list_to_obj_file(p_list):
     lists = panel_to_list(p_list)
     file = open("Panels-3D.obj","w+")
@@ -326,4 +385,22 @@ def list_to_obj_file(p_list):
     file.write("s 1\n")
     for f in lists[2]:
         file.write("f {}\n".format(f))
+    file.close()
+
+def list_to_obj_file_new(p_list, esp):
+    lists = panel_to_list_new(p_list, esp)
+    file = open("Panels-3D.obj","w+")
+    file.write("#Modelo 3d das placas - Antonio Marcos Cruz da Paz\n")
+    pc = 1
+    for o in lists:
+        file.write("o Placa {}\n".format(pc))
+        for v in o[0]:
+            file.write("v {} {} {}\n".format(v[0],v[1],v[2]))
+        for n in o[1]:
+            file.write("vn {:.20f} {:.20f} {:.20f}\n".format(n[0], n[1], n[2]))
+        file.write("usemtl None\n")
+        file.write("s 1\n")
+        for f in o[2]:
+            file.write("f {}\n".format(f))
+        pc += 1
     file.close()

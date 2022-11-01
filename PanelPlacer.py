@@ -793,6 +793,7 @@ pix_area = None
 needed_placas = 21
 placa_dim1 = 1.65
 placa_dim2 = 1
+esp_placa = 0.05
 incl_pref = "Telhado"  #Pode ser "Telhado" ou "Placa"
 incl_value = 0
 incl_orient = 'x'
@@ -816,7 +817,7 @@ cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
 #['Hor', 'bottom-left', False, False],
-['Hor', 'bottom-right', False, False],
+['Hor', 'top-left', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
 ]
@@ -885,9 +886,9 @@ for case in cases:
     dimention_to_pixel()
     print("Inclinação: {}".format(incl))
     placas_locadas = np.full_like(area_de_interesse, None)
-    place_panels_in_grids_possible(routing)
+    place_panels_in_grid(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
     print_placas()
     python_array_to_pickle(lista_placas, 'lista_placas')
-    list_to_obj_file(lista_placas)
+    list_to_obj_file_new(lista_placas, esp_placa)
