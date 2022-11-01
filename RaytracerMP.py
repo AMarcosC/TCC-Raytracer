@@ -261,7 +261,7 @@ def trace_tri_results(): #função que emite os raios para um conjunto de triân
     pbar_trace = tqdm(total=len(coord_list))
     resultados_list = []
     pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
-    for result in pool.imap(color_on_point, coord_list, chunksize=n_x):
+    for result in pool.imap(color_on_point_pre_mapped, coord_list, chunksize=n_x):
         resultados_list.append(result)
         pbar_trace.update(1)
     pool.close() # No more work
@@ -289,6 +289,20 @@ def color_on_point(c):
     return res[0]     #adiciona o valor da cor interceptada na lista
 
 
+def color_on_point_pre_mapped(c):
+    ponto = pre_mapped[c[0]][c[1]]
+    if ponto[0] == None:
+        return [0,0,0,0]
+    else:
+        intercept_point = ponto[0]
+        temp = (diffuse_tri(intercept_point, cena[ponto[1]], luz_dir, kd, ka))  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
+        for outro_obj in modelagem: #para os objetos na cena
+            if outro_obj != cena[ponto[1]] and intercept_tri_bool(outro_obj, intercept_point,luz_dir): #se estivermos no telhado, se o triângulo não for ele mesmo e interceptar outro triângulo
+                temp = [0,0,0,255] #então este pixel está na sombra
+        return temp     #adiciona o valor da cor interceptada na lista
+
+
+#[intercept_point, obj_atual, dist_atual]
 
 def shadow_to_heatmap(tabela):  #transforma os valores do vetor heatmap em uma tabela de cores
     tabela_return = []
@@ -369,8 +383,45 @@ def area_of_interest_check(c):
         temp = intercept_tri(objeto, pos_ini, dir)
         if temp[1] < dist_atual and (objeto in telhado):  #se a distância da interceptação temp[1] for menor que a distância atual e estiver no telhado
             dist_atual = temp[1]
-            intercept_point = ray_p(dist_atual,pos_ini,dir)  #descobrimos o ponto dessa interceptação no espaço
+            intercept_point = ray_p(dist_atual,pos_ini,dir) #descobrimos o ponto dessa interceptação no espaço
     return intercept_point
+
+
+def object_pre_mapping():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+    coord_list = all_combinations(n_y, n_x)
+    resultados = object_pre_mapping_results()
+    print("---Passando Resultados---")
+    res_ar = list_to_array_reshape(resultados, n_x, n_y)
+    return res_ar
+
+
+def object_pre_mapping_results():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+    coord_list = all_combinations(n_y, n_x)
+    resultados_list = []
+    print("---Pré Mapeando Objetos---")
+    pbar = tqdm(total=len(coord_list))
+    pool = Pool(processes=core_count-1)  #aumentar ou diminuir depois
+    results = pool.imap(object_pre_mapping_check, coord_list, chunksize=n_x)
+    for result in results:
+        resultados_list.append(result)
+        pbar.update(1)
+    pool.close() # No more work
+    pool.join() # Wait for completion
+    return resultados_list  #analisar necessidade
+
+
+def object_pre_mapping_check(c):
+    intercept_point = None
+    pos_ini = coordenadas_pixels[c[0]][c[1]]
+    dist_atual = FARAWAY
+    obj_atual = None
+    for objeto in cena:
+        temp = intercept_tri(objeto, pos_ini, dir)
+        if temp[1] < dist_atual:  #se a distância da interceptação temp[1] for menor que a distância atual e estiver no telhado
+            dist_atual = temp[1]
+            intercept_point = ray_p(dist_atual,pos_ini,dir) #descobrimos o ponto dessa interceptação no espaço
+            obj_atual = cena.index(objeto)
+    return [intercept_point, obj_atual, dist_atual]
 
 
 def color_range(n_colors):
@@ -400,6 +451,18 @@ def color_range(n_colors):
             final_range.append(c2)
         print(final_range)
         return final_range
+
+def area_of_interest_from_pre_mapping():
+    tt = np.full((n_y, n_x), None)
+    for i in range (0, len(pre_mapped), 1):
+        for j in range (0, len(pre_mapped[0]), 1):
+            c_t = pre_mapped[i][j]
+            if c_t[1] != None:
+                if cena[c_t[1]] in telhado:
+                    tt[i][j] = c_t[0]
+    return tt
+
+#[intercept_point, obj_atual, dist_atual]
 
 """Variáveis Globais e Locais"""
 core_count=multiprocessing.cpu_count()
@@ -453,15 +516,15 @@ eps = 0.00025  #uma distância para afastar o ponto do próprio objeto
 sunpath = [
 #[-0.8330, 73.97],
 #[4.18,	73.26],
-[18.33, 70.43],
-[32.15,	65.89],
-[45.34,	58.37],
-[57.08,	44.88],
-[65.24,	19.86],
-[65.84,	344.63],
+#[18.33, 70.43],
+#[32.15,	65.89],
+#[45.34,	58.37],
+#[57.08,	44.88],
+#[65.24,	19.86],
+#[65.84,	344.63],
 [58.45,	317.74],
-[47.01,	303.09],
-[33.96,	295],
+#[47.01,	303.09],
+#[33.96,	295],
 #[20.2, 290.18],
 #[6.09, 287.18],
 #[-0.833, 286.17]
@@ -477,9 +540,11 @@ coordenadas_intercept = []
 
 #tab_area_of_interest_base = multiprocessing.Array()   #estudar retirar essa linha
 
-
-area_de_interesse = area_of_interest()  #area_de_interesse: matriz de coordenadas em vec3
+pre_mapped = object_pre_mapping()
+#area_de_interesse = area_of_interest()  #area_de_interesse: matriz de coordenadas em vec3
+area_de_interesse = area_of_interest_from_pre_mapping()
 table = np.full((n_y, n_x), None)  #matriz vazia
+
 
 
 for time in sunpath:
