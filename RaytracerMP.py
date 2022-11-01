@@ -94,6 +94,36 @@ def screen_size(list_triangles):
     n_y = abs(top-bot)*pixel_por_metro
 
 
+def screen_size_forr(list_triangles):
+    global l, r, top, bot, depth, n_x, n_y, pixel_por_metro, forramento
+    x_menor = FARAWAY
+    x_maior = - FARAWAY
+    y_menor = FARAWAY
+    y_maior = - FARAWAY
+    z_maior = - FARAWAY
+    for triangle in list_triangles:
+        for vertex in triangle.v:
+            if vertex.x > x_maior:
+                x_maior = vertex.x
+            if vertex.x < x_menor:
+                x_menor = vertex.x
+            if vertex.y > y_maior:
+                y_maior = vertex.y
+            if vertex.y < y_menor:
+                y_menor = vertex.y
+            if vertex.z > z_maior:
+                z_maior = vertex.z
+    l = (int((x_menor)-(forramento))) - 1
+    r = (int((x_maior)+(forramento))) + 1
+    top = (int((y_maior)+(forramento))) + 1
+    bot = (int((y_menor)-(forramento))) - 1
+    if z_maior <= 0:
+        depth = 1
+    else:
+        depth = int(z_maior) + 1
+    n_x = abs(r-l)*pixel_por_metro
+    n_y = abs(top-bot)*pixel_por_metro
+
 
 def intersect_sph(e,esfera): #função que determina se um vetor intercepta uma esfera (retorna cor e distância)
     raiz = ((dir.dot((e-esfera.c)))**2) - ((dir.dot(dir))*(((e-esfera.c).dot((e-esfera.c))) - ((esfera.r)**2)))
@@ -470,6 +500,7 @@ print("Número de núcleos da CPU: {}".format(core_count))
 
 offset = 0
 pixel_por_metro = 10
+forramento = 1.7
 FARAWAY = 1.0e39  #uma distância grande
 depth = 10  #profundidade da tela em relação à origem
 
@@ -500,7 +531,7 @@ modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
 add_triangles_to_cena(telhado)
 add_triangles_to_cena(modelagem)
 
-screen_size(cena)
+screen_size_forr(cena)
 
 print(n_x, n_y)
 
