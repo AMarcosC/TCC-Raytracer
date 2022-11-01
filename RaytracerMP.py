@@ -113,10 +113,10 @@ def screen_size_forr(list_triangles):
                 y_menor = vertex.y
             if vertex.z > z_maior:
                 z_maior = vertex.z
-    l = (int((x_menor)-(forramento))) - 1
-    r = (int((x_maior)+(forramento))) + 1
-    top = (int((y_maior)+(forramento))) + 1
-    bot = (int((y_menor)-(forramento))) - 1
+    l = math.floor(int((x_menor)-(forramento))) - 1
+    r = math.ceil(int((x_maior)+(forramento))) + 1
+    top = math.ceil(int((y_maior)+(forramento))) + 1
+    bot = math.floor(int((y_menor)-(forramento))) - 1
     if z_maior <= 0:
         depth = 1
     else:
