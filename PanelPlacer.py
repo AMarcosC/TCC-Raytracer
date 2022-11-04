@@ -484,7 +484,7 @@ def place_panels_in_grid(case):
     for i in range(0, len(grid_optimum), 1):
         if placas_counter < needed_placas:
             execute_placing(grid_optimum[i][1], grid_optimum[i][0], grid_optimum[i][2])
-    while placas_counter < needed_placas:
+    while placas_counter < needed_placas and len(grid_filter) > 0:
         p_sha = highest_score_position(grid_filter)
         execute_placing(p_sha[1], p_sha[0], p_sha[2])
         del grid_filter[p_sha[3]]
@@ -507,14 +507,14 @@ def place_panels_in_grids_possible(case):
         for p in grid:
             if placing_possible_in_shadow(p[1], p[0]) == True:
                 p[2] = panel_score(p[1], p[0])
-                if p[2] > 0.999:
+                if p[2] > 0.99999:
                     grid_optimum.append(p)
                 else:
                     grid_filter.append(p)
         for i in range(0, len(grid_optimum), 1):
             if placas_counter < needed_placas:
                 execute_placing(grid_optimum[i][1], grid_optimum[i][0], grid_optimum[i][2])
-        while placas_counter < needed_placas:
+        while placas_counter < needed_placas and len(grid_filter) > 0:
             p_sha = highest_score_position(grid_filter)
             execute_placing(p_sha[1], p_sha[0], p_sha[2])
             del grid_filter[p_sha[3]]
@@ -533,8 +533,8 @@ def place_panels_in_grids_possible(case):
 
 
 def all_grid_points(i,j,case):
-    print(case)
-    global panel_pix_x, panel_pix_y, heatmap
+    #print(case)
+    global panel_pix_x, panel_pix_y, heatmap, grid_order_routing
     temp_x_less = j
     temp_x_plus = j + panel_pix_x
     temp_y_less = i
@@ -554,29 +554,53 @@ def all_grid_points(i,j,case):
     while temp_y_plus <= len(heatmap)-1:
         y_list.append(temp_y_plus)
         temp_y_plus += panel_pix_y
-    if case == 'top-left':
+    if case == 'top-left' and grid_order_routing=='LR':
         x_list.sort()
         y_list.sort()
         for y in y_list:
             for x in x_list:
                 coord.append([x, y, 0])
-    elif case == 'top-right':
+    elif case == 'top-right' and grid_order_routing=='LR':
         x_list.sort(reverse=True)
         y_list.sort()
         for y in y_list:
             for x in x_list:
                 coord.append([x, y, 0])
-    elif case == "bottom-right":
+    elif case == "bottom-right" and grid_order_routing=='LR':
         x_list.sort(reverse=True)
         y_list.sort(reverse=True)
         for y in y_list:
             for x in x_list:
                 coord.append([x, y, 0])
-    elif case == "bottom-left":
+    elif case == "bottom-left" and grid_order_routing=='LR':
         x_list.sort()
         y_list.sort(reverse=True)
         for y in y_list:
             for x in x_list:
+                coord.append([x, y, 0])
+    elif case == 'top-left' and grid_order_routing=='UD':
+        x_list.sort()
+        y_list.sort()
+        for x in x_list:
+            for y in y_list:
+                coord.append([x, y, 0])
+    elif case == 'top-right' and grid_order_routing=='UD':
+        x_list.sort(reverse=True)
+        y_list.sort()
+        for x in x_list:
+            for y in y_list:
+                coord.append([x, y, 0])
+    elif case == "bottom-right" and grid_order_routing=='UD':
+        x_list.sort(reverse=True)
+        y_list.sort(reverse=True)
+        for x in x_list:
+            for y in y_list:
+                coord.append([x, y, 0])
+    elif case == "bottom-left" and grid_order_routing=='UD':
+        x_list.sort()
+        y_list.sort(reverse=True)
+        for x in x_list:
+            for y in y_list:
                 coord.append([x, y, 0])
     return coord
 
@@ -602,6 +626,12 @@ def overall_score(p_list):
     for p in p_list:
         os += p.score
     return os
+
+def overall_score_mean(p_list):
+    os = 0
+    for p in p_list:
+        os += p.score
+    return os/len(p_list)
 
 def return_placa_color(ident):
     for placa in lista_placas:
@@ -790,10 +820,10 @@ pix_x = None
 pix_y = None
 pix_area = None
 
-needed_placas = 21
-placa_dim1 = 1.65
-placa_dim2 = 1
-esp_placa = 0.05
+needed_placas = 50
+placa_dim1 = 1.56
+placa_dim2 = 0.70
+esp_placa = 0.03
 incl_pref = "Telhado"  #Pode ser "Telhado" ou "Placa"
 incl_value = 0
 incl_orient = 'x'
@@ -801,6 +831,8 @@ orient = "Vert"
 routing = "bottom-right"
 axis_lock = False
 orient_alternation = False
+
+grid_order_routing = 'LR' #LR ou UD
 
 placa_dimx = None
 placa_dimy = None
@@ -817,7 +849,7 @@ cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
 #['Hor', 'bottom-left', False, False],
-['Hor', 'top-left', False, False],
+['Vert', 'top-left', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
 ]
@@ -886,9 +918,10 @@ for case in cases:
     dimention_to_pixel()
     print("Inclinação: {}".format(incl))
     placas_locadas = np.full_like(area_de_interesse, None)
-    place_panels_in_grid(routing)
+    place_panels_in_grids_possible(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
     print_placas()
     python_array_to_pickle(lista_placas, 'lista_placas')
     list_to_obj_file_new(lista_placas, esp_placa)
+    print(overall_score_mean(lista_placas))
