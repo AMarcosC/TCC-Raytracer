@@ -181,10 +181,10 @@ def dimention_to_pixel():
     print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,4),panel_pix_y*round(pix_y,4)))
 """
 
-def dimention_to_pixel():
+def dimention_to_pixel(): #mudar para utilizar a densidade de pixels, mais preciso
     global panel_pix_x, panel_pix_y
-    temp_x = (placa_dimx//round(pix_x,4)) + 1
-    temp_y = (placa_dimy//round(pix_y,4)) + 1
+    temp_x = (placa_dimx//round(pix_x,3)) + 1
+    temp_y = (placa_dimy//round(pix_y,3)) + 1
     panel_pix_x = int(temp_x)
     panel_pix_y = int(temp_y)
     print("Placa terá {} px em X e {} px em Y".format(panel_pix_x,panel_pix_y))
@@ -368,9 +368,9 @@ def execute_placing(i,j,score):
         for v in range (j, j+panel_pix_x, 1):
             placas_locadas[u][v] = placas_counter
     lista_placas.append(Placa(placas_counter, panel_edge_coord(i,j), panel_edge_pixels(i,j), score))
-    print("---------------------------")
-    print("Placa locada: eixo {} {}".format(i,j))
-    print("---------------------------")
+    #print("---------------------------")
+    #print("Placa locada: eixo {} {}".format(i,j))
+    #print("---------------------------")
 
 
 def panel_edge_pixels(i,j):
@@ -381,7 +381,7 @@ def panel_edge_pixels(i,j):
     return [t_l, t_r, b_l, b_r]
 
 def panel_edge_coord(i,j):
-    global incl_pref
+    global incl_pref, incl
     ed = panel_edge_pixels(i,j)
     t_l_coord = area_de_interesse[ed[0][1]][ed[0][0]]
     t_r_coord = area_de_interesse[ed[1][1]][ed[1][0]]
@@ -498,6 +498,7 @@ def place_panels_in_grids_possible(case):
     best_lista_placas = []
     best_score = -1
     for g in grid_init_coord:
+        print("Score atual: {}".format(best_score))
         placas_locadas = np.full_like(area_de_interesse, None)
         placas_counter = 0
         lista_placas = []
@@ -534,26 +535,51 @@ def place_panels_in_grids_possible(case):
 
 def all_grid_points(i,j,case):
     #print(case)
-    global panel_pix_x, panel_pix_y, heatmap, grid_order_routing
-    temp_x_less = j
-    temp_x_plus = j + panel_pix_x
-    temp_y_less = i
-    temp_y_plus = i + panel_pix_y
+    global panel_pix_x, panel_pix_y, heatmap, grid_order_routing, afastamento
     x_list = []
     y_list = []
     coord = []
-    while temp_x_less >= 0:
-        x_list.append(temp_x_less)
-        temp_x_less += -panel_pix_x
-    while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
-        x_list.append(temp_x_plus)
-        temp_x_plus += panel_pix_x
-    while temp_y_less >= panel_pix_x:  #verificar
-        y_list.append(temp_y_less)
-        temp_y_less += -panel_pix_y
-    while temp_y_plus <= len(heatmap)-1:
-        y_list.append(temp_y_plus)
-        temp_y_plus += panel_pix_y
+    if afastamento == 0:
+        temp_x_less = j
+        temp_x_plus = j + panel_pix_x
+        temp_y_less = i
+        temp_y_plus = i + panel_pix_y
+    elif incl_orient == '-y' or incl_orient == 'y':
+        temp_x_less = j
+        temp_x_plus = j + panel_pix_x
+        temp_y_less = i
+        temp_y_plus = i + panel_pix_y + afastamento
+    elif incl_orient == '-x' or incl_orient == 'x':
+        temp_x_less = j
+        temp_x_plus = j + panel_pix_x + afastamento
+        temp_y_less = i
+        temp_y_plus = i + panel_pix_y
+    if afastamento == 0:
+        while temp_x_less >= 0:
+            x_list.append(temp_x_less)
+            temp_x_less += -panel_pix_x
+        while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
+            x_list.append(temp_x_plus)
+            temp_x_plus += panel_pix_x
+        while temp_y_less >= panel_pix_x:  #verificar
+            y_list.append(temp_y_less)
+            temp_y_less += -panel_pix_y
+        while temp_y_plus <= len(heatmap)-1:
+            y_list.append(temp_y_plus)
+            temp_y_plus += panel_pix_y
+    elif afastamento > 0 and incl_orient == '-y':  #colocar outros casos depois
+        while temp_x_less >= 0:
+            x_list.append(temp_x_less)
+            temp_x_less += -panel_pix_x
+        while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
+            x_list.append(temp_x_plus)
+            temp_x_plus += panel_pix_x
+        while temp_y_less >= panel_pix_x:  #verificar
+            y_list.append(temp_y_less)
+            temp_y_less += -panel_pix_y - afastamento
+        while temp_y_plus <= len(heatmap)-1:
+            y_list.append(temp_y_plus)
+            temp_y_plus += panel_pix_y + afastamento
     if case == 'top-left' and grid_order_routing=='LR':
         x_list.sort()
         y_list.sort()
@@ -820,15 +846,16 @@ pix_x = None
 pix_y = None
 pix_area = None
 
-needed_placas = 50
+needed_placas = 100
 placa_dim1 = 1.56
 placa_dim2 = 0.70
 esp_placa = 0.03
-incl_pref = "Telhado"  #Pode ser "Telhado" ou "Placa"
-incl_value = 0
-incl_orient = 'x'
-orient = "Vert"
-routing = "bottom-right"
+incl_pref = "Placa"  #Pode ser "Telhado" ou "Placa"
+incl_value = 20   #em graus
+incl_orient = '-y'
+afastamento = 12 #em pixels
+orient = "Hor"
+routing = "top-left"
 axis_lock = False
 orient_alternation = False
 
@@ -849,7 +876,7 @@ cases = [
 #['Hor', 'top-left', False, False],
 #['Hor', 'top-right', False, False],
 #['Hor', 'bottom-left', False, False],
-['Vert', 'top-left', False, False],
+['Hor', 'top-left', False, False],
 #['Vert', 'bottom-right', True, False],
 #['Vert', 'bottom-right', False, True],
 ]
@@ -918,7 +945,7 @@ for case in cases:
     dimention_to_pixel()
     print("Inclinação: {}".format(incl))
     placas_locadas = np.full_like(area_de_interesse, None)
-    place_panels_in_grids_possible(routing)
+    place_panels_in_grid(routing)
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
     print_placas()

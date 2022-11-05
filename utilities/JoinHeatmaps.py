@@ -61,10 +61,10 @@ def color_range_image(list_colors):
         cont_n = cont_n + 1
     img_color.save('output/ColorDict.png')
 
-def heatmap_to_img(h1,h2,h3,h4):
-    numero_cores = int(abs(h1[0][0]) + abs(h2[0][0]) + abs(h3[0][0]) + abs(h4[0][0]) + 1)
+def heatmap_to_img(h1,h3):
+    numero_cores = int(abs(h1[0][0]) + abs(h3[0][0]))  #somar aqui
     colors = color_range(numero_cores)
-    soma = h1 + h2 + h3 + h4
+    soma = h1 + h3  #somar aqui
     img = []
     for i in soma:
         line = []
@@ -81,18 +81,18 @@ def heatmap_to_img(h1,h2,h3,h4):
 
 change_to_current_dir()
 
-hea_1 = open('heatmap-20mar2022','rb')
+hea_1 = open('heatmap-20mar2022-21jun2022','rb')
 heatmap_1 = pickle.load(hea_1)
 
-hea_2 = open('heatmap-21jun2022','rb')
-heatmap_2 = pickle.load(hea_2)
+#hea_2 = open('heatmap-21jun2022','rb')
+#heatmap_2 = pickle.load(hea_2)
 
-hea_3 = open('heatmap-22set2022','rb')
+hea_3 = open('heatmap-22set2022-21dez2022','rb')
 heatmap_3 = pickle.load(hea_3)
 
-hea_4 = open('heatmap-21dez2022','rb')
-heatmap_4 = pickle.load(hea_4)
+#hea_4 = open('heatmap-21dez2022','rb')
+#heatmap_4 = pickle.load(hea_4)
 
-heatmap_somado = heatmap_to_img(heatmap_1,heatmap_2,heatmap_3,heatmap_4)
+heatmap_somado = heatmap_to_img(heatmap_1,heatmap_3)  #somar aqui
 
 python_array_to_pickle(heatmap_somado, 'heatmap-somado')
