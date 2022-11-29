@@ -1,0 +1,30 @@
+GERAL:
+  DENSIDADE_PIXEL: 15  #quantidade de pixels por unidade de medida adotada no modelo
+  K_D: 0.6  #coeficiente de difusão
+  K_A: 0.4  #coeficiente de iluminação ambiente
+
+MODELO:
+  AREA_DE_INTERESSE_OBJ: 'assets/M2-Telhado00.obj'  #arquivo .obj do telhado ou área de interesse
+  AREA_DE_INTERESSE_COR: [217,101,78,255] #cor RGBA da área de interesse
+  MODELAGEM_OBJ: 'assets/M2-Paredes.obj' #arquivo .obj do resto da modelagem
+  MODELAGEM_COR: [97,83,80,255] #cor RGBA do resto da modelagem
+  OFFSET: 0  #valor em graus entre o norte do modelo e o plano de trabalho (eixo y)
+  FORRAMENTO: 1.7 #valor adotado de forramento para as bordas da imagem (recomenda-se um valor imediatamente maior à maior dimensão da placa utilizada)
+
+TRAJETORIA: [
+#[elevação,azimute]  #não pode ter espaço depois da vírgula
+#[-0.8330,73.97],
+#[4.18,73.26],
+#[18.33,70.43],
+[32.15,65.89],
+[45.34,58.37],
+[57.08,44.88],
+[65.24,19.86],
+[65.84,344.63],
+[58.45,317.74],
+[47.01,303.09],
+[33.96,295],
+#[20.2,290.18],
+#[6.09,287.18],
+#[-0.833,286.17]
+]

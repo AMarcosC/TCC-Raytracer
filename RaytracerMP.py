@@ -42,6 +42,7 @@ import multiprocessing
 from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
 from tqdm import tqdm
+import yaml
 
 """Funções Voltadas ao problema"""
 
@@ -63,7 +64,7 @@ def pixel_pos(i,j):  #transforma um pixel na tela em um ponto no espaço
     return([u, v])
 
 
-def screen_size(list_triangles):
+def screen_size(list_triangles):  #deterimina o tamamho da tela (descontinuada)
     global l, r, top, bot, depth, n_x, n_y, pixel_por_metro
     x_menor = FARAWAY
     x_maior = - FARAWAY
@@ -94,7 +95,7 @@ def screen_size(list_triangles):
     n_y = abs(top-bot)*pixel_por_metro
 
 
-def screen_size_forr(list_triangles):
+def screen_size_forr(list_triangles):  #determina o tamanho da tela
     global l, r, top, bot, depth, n_x, n_y, pixel_por_metro, forramento
     x_menor = FARAWAY
     x_maior = - FARAWAY
@@ -138,7 +139,6 @@ def intersect_sph(e,esfera): #função que determina se um vetor intercepta uma 
         return ([0,0,0,0], FARAWAY)
 
 
-
 def intersect_sph_bool(e,esfera,luz_dir): #função que determina se um vetor intercepta uma esfera (retorna um booleano)
     raiz = ((luz_dir.dot((e-esfera.c)))**2) - ((luz_dir.dot(luz_dir))*(((e-esfera.c).dot((e-esfera.c))) - ((esfera.r)**2)))
     if raiz >= 0:
@@ -152,7 +152,7 @@ def intersect_sph_bool(e,esfera,luz_dir): #função que determina se um vetor in
         return False
 
 
-def intersect_sph_coord(e,esfera): #função que determina a coordenada de inteceptação em uma esfera - NÃO UTILIZADA, PORÉM ÚTIL
+def intersect_sph_coord(e,esfera):  #função que determina a coordenada de inteceptação em uma esfera - NÃO UTILIZADA, PORÉM ÚTIL
     raiz = ((dir.dot((e-esfera.c)))**2) - ((dir.dot(dir))*(((e-esfera.c).dot((e-esfera.c))) - ((esfera.r)**2)))
     if raiz > 0:
         t1 = (-(dir.dot((e-esfera.c))) + np.sqrt(raiz))/(dir.dot(dir))
@@ -236,7 +236,7 @@ def add_triangles_to_cena(list_triangles):  #adiciona os triângulos na cena
     for triangle in list_triangles:
         cena.append(triangle)
 
-def diffuse_tri(int_point, tri, dir_luz, kd, ka):  #define a cor do triângulo devido ao efeito de difusão  #retirar int_point
+def diffuse_tri(tri, dir_luz, kd, ka):  #define a cor do triângulo devido ao efeito de difusão
     n = tri.normal
     l = dir_luz
     f = n.dot(l)
@@ -250,7 +250,6 @@ def diffuse_tri(int_point, tri, dir_luz, kd, ka):  #define a cor do triângulo d
         green = (ka*tri.color[1]) + (kd*(0)*tri.color[1])
         blue = (ka*tri.color[2]) + (kd*(0)*tri.color[2])
         return ([red,green,blue,255])
-
 
 
 def trace_sph(): #função que emite os raios para um círculo
@@ -299,9 +298,7 @@ def trace_tri_results(): #função que emite os raios para um conjunto de triân
     return resultados_list  #retorna a lista com as cores, precisa ser colocada em shape
 
 
-
-
-def color_on_point(c):
+def color_on_point(c):  #determina a cor em um certo pixel da imagem, baseada no objeto que está nele
     et = pixel_pos(c[1],c[0])  #determina o ponto do pixel no espaço (origem da luz)
     e = vec3(et[0],et[1], depth)  #a origem do raio é o ponto do pixel no espaço
     res = ([0,0,0,0], FARAWAY)  #o pixel inicia as iterações como transparente e no infinito
@@ -310,7 +307,7 @@ def color_on_point(c):
         if temp[1] < res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1]
             res = temp
             intercept_point = ray_p(res[1],e,dir)  #descobrimos o ponto dessa interceptação no espaço
-            temp = (diffuse_tri(intercept_point, objeto, luz_dir, kd, ka),temp[1])  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
+            temp = (diffuse_tri(objeto, luz_dir, kd, ka),temp[1])  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
             if temp[1] <= res[1]:  #se a distância da interceptação temp[1] for menor que a distância atual res[1] - ESTUDAR RETIRAR
                 res = temp         #Estudar retirar, parece desnecessário
             for outro_obj in cena: #para os objetos na cena
@@ -319,22 +316,20 @@ def color_on_point(c):
     return res[0]     #adiciona o valor da cor interceptada na lista
 
 
-def color_on_point_pre_mapped(c):
+def color_on_point_pre_mapped(c):  #determina a cor de um certo pixel, para o caso do pré-mapeamento de objetos
     ponto = pre_mapped[c[0]][c[1]]
     if ponto[0] == None:
         return [0,0,0,0]
     else:
         intercept_point = ponto[0]
-        temp = (diffuse_tri(intercept_point, cena[ponto[1]], luz_dir, kd, ka))  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
+        temp = (diffuse_tri(cena[ponto[1]], luz_dir, kd, ka))  #aplicamos a cor resultante do efeito de difusão, e mantemos a distância
         for outro_obj in modelagem: #para os objetos na cena
             if outro_obj != cena[ponto[1]] and intercept_tri_bool(outro_obj, intercept_point,luz_dir): #se estivermos no telhado, se o triângulo não for ele mesmo e interceptar outro triângulo
                 temp = [0,0,0,255] #então este pixel está na sombra
         return temp     #adiciona o valor da cor interceptada na lista
 
 
-#[intercept_point, obj_atual, dist_atual]
-
-def shadow_to_heatmap(tabela):  #transforma os valores do vetor heatmap em uma tabela de cores
+def shadow_to_heatmap(tabela):  #transforma os pontos sombreados em uma matriz cujos valores determinam a intensidade do sombreamento
     tabela_return = []
     for i in range (0, len(tabela)):
         linha_return = []
@@ -350,7 +345,7 @@ def shadow_to_heatmap(tabela):  #transforma os valores do vetor heatmap em uma t
     return tabela_return
 
 
-def heatmap_to_img(heatmap):
+def heatmap_to_img(heatmap):  #transforma a matriz dos valores de sombreamento em uma imagem (campo escalar)
     numero_cores = len(heatmap)+1
     colors = color_range(numero_cores)
     soma = np.zeros((n_y,n_x))
@@ -371,7 +366,7 @@ def heatmap_to_img(heatmap):
     return soma
 
 
-def pixel_coordinates(n, m):
+def pixel_coordinates(n, m):  #determina as coordenadas reais dos pixels da tela
     tabela_pc = []
     for i in range (0,n,1):
         linha_pc = []
@@ -390,7 +385,7 @@ def area_of_interest():   #retorna uma matriz com apenas os pontos da área de i
     return res_ar
 
 
-def area_of_interest_results():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+def area_of_interest_results():   #retorna uma matriz com apenas os pontos da área de interesse, vec3  (descontinuada)
     coord_list = all_combinations(n_y, n_x)
     resultados_list = []
     print("---Delimitando área de interesse---")
@@ -405,7 +400,7 @@ def area_of_interest_results():   #retorna uma matriz com apenas os pontos da á
     return resultados_list  #analisar necessidade
 
 
-def area_of_interest_check(c):
+def area_of_interest_check(c):  #retorna o ponto de interceptação para formar a área de interesse  (descontinuada)
     intercept_point = None
     pos_ini = coordenadas_pixels[c[0]][c[1]]
     dist_atual = FARAWAY
@@ -417,7 +412,7 @@ def area_of_interest_check(c):
     return intercept_point
 
 
-def object_pre_mapping():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+def object_pre_mapping():   #retorna uma matriz com os objetos tocados pelo primeiro raio emitido
     coord_list = all_combinations(n_y, n_x)
     resultados = object_pre_mapping_results()
     print("---Passando Resultados---")
@@ -425,7 +420,7 @@ def object_pre_mapping():   #retorna uma matriz com apenas os pontos da área de
     return res_ar
 
 
-def object_pre_mapping_results():   #retorna uma matriz com apenas os pontos da área de interesse, vec3
+def object_pre_mapping_results():   #cria um pool de processos para procurar os objetos tocados pelo primeiro raio emitido
     coord_list = all_combinations(n_y, n_x)
     resultados_list = []
     print("---Pré Mapeando Objetos---")
@@ -440,7 +435,7 @@ def object_pre_mapping_results():   #retorna uma matriz com apenas os pontos da 
     return resultados_list  #analisar necessidade
 
 
-def object_pre_mapping_check(c):
+def object_pre_mapping_check(c):  #verifica qual é o objeto tocado pelo raio emitido em um certo ponto da tela
     intercept_point = None
     pos_ini = coordenadas_pixels[c[0]][c[1]]
     dist_atual = FARAWAY
@@ -454,7 +449,7 @@ def object_pre_mapping_check(c):
     return [intercept_point, obj_atual, dist_atual]
 
 
-def color_range(n_colors):
+def color_range(n_colors):  #cria a faixa de cores usada na imagem do mapa de calor
     if n_colors == 1:
         return [Color("green")]
     elif n_colors == 2:
@@ -482,7 +477,7 @@ def color_range(n_colors):
         print(final_range)
         return final_range
 
-def area_of_interest_from_pre_mapping():
+def area_of_interest_from_pre_mapping():  #obtém a aŕea de interesse a partir do pré-mapeamento de objetos (a forma antiga foi descontinuada)
     tt = np.full((n_y, n_x), None)
     for i in range (0, len(pre_mapped), 1):
         for j in range (0, len(pre_mapped[0]), 1):
@@ -492,20 +487,23 @@ def area_of_interest_from_pre_mapping():
                     tt[i][j] = c_t[0]
     return tt
 
-#[intercept_point, obj_atual, dist_atual]
-
 """Variáveis Globais e Locais"""
 core_count=multiprocessing.cpu_count()
 print("Número de núcleos da CPU: {}".format(core_count))
 
-offset = 0
-pixel_por_metro = 10
-forramento = 1.7
-FARAWAY = 1.0e39  #uma distância grande
+with open('Raytracer-Config.yaml', "r") as c_file:
+    cf = yaml.safe_load(c_file)
+print(cf)
+
+
+offset = cf['MODELO']['OFFSET']
+pixel_por_metro = cf['GERAL']['DENSIDADE_PIXEL']
+forramento = cf['MODELO']['FORRAMENTO']
+FARAWAY = 1.0e39
 depth = 10  #profundidade da tela em relação à origem
 
-kd = 0.6  #coeficiente de difusão
-ka = 0.4  #coeficiente de ambiente
+kd = cf['GERAL']['K_D']  #coeficiente de difusão
+ka = cf['GERAL']['K_A']  #coeficiente de ambiente
 
 n_x = 200  #(tamaho da tela em x)
 n_y = 150  #tamanho da tela em y)
@@ -515,18 +513,12 @@ top = 3  #coordenada y do topo da tela
 bot = -3  #coordenada y do fim da tela
 
 
-
-tri2 = Triangle(vec3(-60,45,-25), vec3(-60,-45,-25), vec3(60,-45,-25), [255, 255, 255, 255]) #fundo da imagem (branco)
-tri3 = Triangle(vec3(-60,45,-25), vec3(60,45,-25), vec3(60,-45,-25), [255, 255, 255, 255])   #fundo da imagem (branco)
-
-#os.chdir(sys.path[0])
-#print(os.listdir())
 change_to_current_dir()
-telhado_obj = parse('assets/M2-Telhado00.obj')
-modelagem_obj = parse('assets/M2-Paredes.obj')
+telhado_obj = parse(cf['MODELO']['AREA_DE_INTERESSE_OBJ'])
+modelagem_obj = parse(cf['MODELO']['MODELAGEM_OBJ'])
 cena = []
-telhado = obj_to_triangles(telhado_obj, [217,101,78,255])
-modelagem = obj_to_triangles(modelagem_obj, [97,83,80,255])
+telhado = obj_to_triangles(telhado_obj, cf['MODELO']['AREA_DE_INTERESSE_COR'])
+modelagem = obj_to_triangles(modelagem_obj, cf['MODELO']['MODELAGEM_COR'])
 
 add_triangles_to_cena(telhado)
 add_triangles_to_cena(modelagem)
@@ -540,26 +532,9 @@ dir = vec3(0,0,-1) #direção dos raios lançados pela tela
 
 luz_dir = vec3(-0.6247,0.6247,0.46852)  #direção da origem até a luz, unitário
 
-eps = 0.00025  #uma distância para afastar o ponto do próprio objeto
-#para evitar auto-detecção
 
 #fonte: https://www.sunearthtools.com/dp/tools/pos_sun.php?lang=pt
-sunpath = [
-#[-0.8330, 73.97],
-#[4.18,	73.26],
-#[18.33, 70.43],
-#[32.15,	65.89],
-#[45.34,	58.37],
-#[57.08,	44.88],
-#[65.24,	19.86],
-#[65.84,	344.63],
-[58.45,	317.74],
-#[47.01,	303.09],
-#[33.96,	295],
-#[20.2, 290.18],
-#[6.09, 287.18],
-#[-0.833, 286.17]
-]
+sunpath = cf['TRAJETORIA']
 
 """Inicialização"""
 cont = 0

@@ -12,13 +12,12 @@ Observações:
 É desnecessário utilizar a matriz da área de interesse na locação, já que o mapa de calor só existe na área de interesse mesmo.
 Porém ela pode ser utilizada para verificar a inclinação do telhado.
 
-Próximos passos:
-    - Permitir exportação da locação das placas (coordenadas)
+Possíveis aprimoramentos no código:
+- O mapeamento horizontal e vertical podem ser unidos em uma única função, bastando um if statement
 
 """
 
 """Classes"""
-
 
 class Placa:  #classse que define as propriedades de um objeto genérico qualquer
     def __init__(self, id, coord, edges, score):
@@ -32,24 +31,39 @@ class Placa:  #classse que define as propriedades de um objeto genérico qualque
 
 """Funções"""
 
-def pixel_size():
-    global pix_x, pix_y, pix_area, area_de_interesse
-    for i in range (0 , len(area_de_interesse)):
-        for j in range (0, len(area_de_interesse[0])):
-            if area_de_interesse[i][j] != None and area_de_interesse[i+1][j+1] != None:
-                x0 = area_de_interesse[i][j].x
-                y0 = area_de_interesse[i][j].y
-                x1 = area_de_interesse[i+1][j+1].x
-                y1 = area_de_interesse[i+1][j+1].y
-                pix_x = abs(x1 - x0)
-                pix_y = abs(y1 - y0)
-                pix_area = pix_x * pix_y
-                print("Altura do pixel: {}".format(pix_y))
-                print("Largura do pixel: {}".format(pix_x))
-                print("Área do pixel: {}".format(pix_area))
-                return(pix_x,pix_y)
+def pixel_size():  #define o tamanho de um pixel no mundo real, no eixo x e no eixo y
+    global pix_x, pix_y, pix_area, area_de_interesse, pix_dens
+    if pix_dens <= 0:
+        for i in range (0 , len(area_de_interesse)):
+            for j in range (0, len(area_de_interesse[0])):
+                if area_de_interesse[i][j] != None and area_de_interesse[i+1][j+1] != None:
+                    x0 = area_de_interesse[i][j].x
+                    y0 = area_de_interesse[i][j].y
+                    x1 = area_de_interesse[i+1][j+1].x
+                    y1 = area_de_interesse[i+1][j+1].y
+                    pix_x = abs(x1 - x0)
+                    pix_y = abs(y1 - y0)
+                    pix_area = pix_x * pix_y
+                    x_dens = round(1/round(pix_x,4))
+                    y_dens = round(1/round(pix_y,4))
+                    if x_dens != y_dens:
+                        print("Erro: Densidades verticais e horizontais não são iguais. Inserir densidade manualmente")
+                    else:
+                        pix_dens = x_dens
+                    print("Altura do pixel: {}".format(pix_y))
+                    print("Largura do pixel: {}".format(pix_x))
+                    print("Área do pixel: {}".format(pix_area))
+                    return(pix_x,pix_y)
+    else:
+        pix_x = 1/pix_dens
+        pix_y = 1/pix_dens
+        pix_area = pix_x * pix_y
+        print("Altura do pixel: {}".format(pix_y))
+        print("Largura do pixel: {}".format(pix_x))
+        print("Área do pixel: {}".format(pix_area))
+        return(pix_x,pix_y)
 
-def not_surrounded_by(array,i,j,value):
+def not_surrounded_by(array,i,j,value):  #verifica se um certo índice da matriz não é rodeado por um certo valor
         if i == 0 or j == 0 or i == (len(array)-1) or j == (len(array[0])-1):  #evitar out of index
             return False
         elif (array[i-1][j-1] != value and
@@ -64,14 +78,14 @@ def not_surrounded_by(array,i,j,value):
         else:
             return False
 
-def slope(p0, p1):
+def slope(p0, p1):  #calcula a inclinação entre dois pontos
     dx = p1.x - p0.x
     dy = p1.y - p0.y
     dz = p1.z - p0.z
     dl = math.sqrt((dx**2) + (dy**2))
     return (abs(dz/dl))  #radianos
 
-def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor que esse valor venha do modelo
+def find_slope(ar):  #encontra a inclinação do telhado  #vai servir para o exemplo mas é muito arcaico, é melhor que esse valor venha do modelo
     global incl_pref, incl_value, incl_orient
     if incl_pref == "Telhado":
         for i in range (0, len(ar), 1):
@@ -85,7 +99,7 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
                     elif slope(ar[i-1][j], ar[i+1][j]) > temp:
                         temp = slope(ar[i-1][j], ar[i+1][j])
                         or_temp = 'y'
-                    elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:  #corrigir depois, criar uma margem de erro para inclinação
+                    elif slope(ar[i-1][j-1], ar[i+1][j+1]) > temp:  #criar uma margem de erro para inclinação
                         temp = slope(ar[i-1][j-1], ar[i+1][j+1])
                         or_temp = 'other'
                     elif slope(ar[i+1][j-1], ar[i-1][j+1]) > temp:
@@ -100,7 +114,7 @@ def find_slope(ar):  #vai servir para o exemplo mas é muito arcaico, é melhor 
         or_temp = incl_orient
         return (temp, or_temp)
 
-def placa_projection():
+def placa_projection():  #determina qual direção da placa será inclinada e faz a sua projeção no plano
     global placa_dim1, placa_dim2, placa_dimx, placa_dimy
     alpha = math.cos(math.atan(incl[0]))
     print(alpha)
@@ -118,7 +132,7 @@ def placa_projection():
         placa_dimy = menor(placa_dim1, placa_dim2) * alpha
 
 
-def z_diff(ext, ori, val):  #extremidades, sentido da incl da placa, angulo
+def z_diff(ext, ori, val):  #determina a diferença de altura na inclinação da placa  #extremidades, sentido da incl da placa, angulo
     if ori == 'x':
         z_keep = ext[0].z
         h_0 = ext[0].x
@@ -161,73 +175,22 @@ def z_diff(ext, ori, val):  #extremidades, sentido da incl da placa, angulo
         return ext
 
 
-"""
-#esta versão da função garante que o número de pixels da placa
-#será impar, importante para locar no eixo
-
-def dimention_to_pixel():
+def dimention_to_pixel(): #converte uma dimensão do mundo real em valores inteiros de pixel
     global panel_pix_x, panel_pix_y
-    temp_x = (placa_dimx//round(pix_x,4)) + 1
-    temp_y = (placa_dimy//round(pix_y,4)) + 1
-    if impar(temp_x) == True:
-        panel_pix_x = int(temp_x)
-    else:
-        panel_pix_x = int(temp_x+1)
-    if impar(temp_y) == True:
-        panel_pix_y = int(temp_y)
-    else:
-        panel_pix_y = int(temp_y+1)
+    panel_pix_x = math.ceil(placa_dimx/round(pix_x,3))
+    panel_pix_y = math.ceil(placa_dimy/round(pix_y,3))
     print("Placa terá {} px em X e {} px em Y".format(panel_pix_x,panel_pix_y))
-    print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,4),panel_pix_y*round(pix_y,4)))
-"""
-
-def dimention_to_pixel(): #mudar para utilizar a densidade de pixels, mais preciso
-    global panel_pix_x, panel_pix_y
-    temp_x = (placa_dimx//round(pix_x,3)) + 1
-    temp_y = (placa_dimy//round(pix_y,3)) + 1
-    panel_pix_x = int(temp_x)
-    panel_pix_y = int(temp_y)
-    print("Placa terá {} px em X e {} px em Y".format(panel_pix_x,panel_pix_y))
-    print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,4),panel_pix_y*round(pix_y,4)))
-
-"""
-#funções que colocam as placas no eixo (dimensões ímpares em pixels)
-
-def placing_possible(i,j):
-    #print("I atual: {}".format(i))
-    #print("J atual: {}".format(j))
-    temp_list = []
-    for u in range (i-(panel_pix_y//2), i+(panel_pix_y//2), 1):
-        for v in range (j-(panel_pix_x//2), j+(panel_pix_x//2), 1):
-            if (placas_locadas[u][v] == None and
-            heatmap[u][v] == 0 #and
-            #area_de_interesse[u][v] != None
-            ):
-                temp_list.append(True)
-            else:
-                temp_list.append(False)
-    for value in temp_list:
-        if value == False:
-            return False
-    return True
+    print("O tamanho real será de {} m em X e {} m em Y".format(panel_pix_x*round(pix_x,3),panel_pix_y*round(pix_y,3)))
 
 
-def execute_placing(i,j):
-    for u in range (i-(panel_pix_y//2), i+(panel_pix_y//2), 1):
-        for v in range (j-(panel_pix_x//2), j+(panel_pix_x//2), 1):
-            placas_locadas[u][v] = placas_counter
-    #for a in range (i-1-(panel_pix_x//2), i+1+(panel_pix_x//2), 1):
-        #for b in range (i-1-(panel_pix_y//2), i+1+(panel_pix_y//2), 1):
-            #print(placas_locadas[a][b])
-"""
-def alternate_orientation():
+def alternate_orientation():  #alterna a orientação da placa
     global panel_pix_x, panel_pix_y
     temp_pix_x = panel_pix_x
     temp_pix_y = panel_pix_y
     panel_pix_x = temp_pix_y
     panel_pix_y = temp_pix_x
 
-def routing_sequence():
+def routing_sequence():  #define os índices do laço que vai escanear a cena
     global routing, orient_alternation
     if routing == "top-left" and orient_alternation == False:
         begin_i = (panel_pix_y)+1
@@ -325,17 +288,14 @@ def routing_sequence():
         end_j = len(placas_locadas[0]) - ((maior(panel_pix_y,panel_pix_x))+1)
         step_j = 1
         return [[begin_i, end_i, step_i],[begin_j,end_j,step_j]]
-        #continuar outros casos
+        #continuar outros casos se a nomenclatura vertical-horizontal for aplicada
 
 
-def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de baixo
+def placing_possible(i,j):  #verifica se é possivel colocar a placa, considerando apenas áreas sem sombreamento
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
-            if (placas_locadas[u][v] == None and
-            heatmap[u][v] == 0 #and
-            #area_de_interesse[u][v] != None
-            ):
+            if (placas_locadas[u][v] == None and heatmap[u][v] == 0):
                 temp_list.append(True)
             else:
                 temp_list.append(False)
@@ -344,14 +304,11 @@ def placing_possible(i,j):  #jeito meio burro, dá pra simplificar como a de bai
             return False
     return True
 
-def placing_possible_in_shadow(i,j):
+def placing_possible_in_shadow(i,j):  #verifica se é possivel colocar a placa, mesmo em áreas sombreadas
     temp_list = []
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
         for v in range (j, j+panel_pix_x, 1):
-            if (placas_locadas[u][v] == None and
-            #heatmap[u][v] == 0 #and
-            area_de_interesse[u][v] != None
-            ):
+            if (placas_locadas[u][v] == None and area_de_interesse[u][v] != None):
                 temp_list.append(True)
             else:
                 temp_list.append(False)
@@ -361,7 +318,7 @@ def placing_possible_in_shadow(i,j):
     return True
 
 
-def execute_placing(i,j,score):
+def execute_placing(i,j,score):  #executa a colocação da placa na posição
     global lista_placas, placas_counter
     placas_counter += 1
     for u in range (i, i-panel_pix_y, -1):
@@ -373,14 +330,14 @@ def execute_placing(i,j,score):
     #print("---------------------------")
 
 
-def panel_edge_pixels(i,j):
+def panel_edge_pixels(i,j):  #determina as bordas da placa em pixels
     t_l = [j, i-panel_pix_y+1]
     t_r = [j+panel_pix_x-1, i-panel_pix_y+1]
     b_l = [j, i]
     b_r = [j+panel_pix_x-1, i]
     return [t_l, t_r, b_l, b_r]
 
-def panel_edge_coord(i,j):
+def panel_edge_coord(i,j):  #determina as bordas da placa nas suas coordenadas reais (considerando as dimensões da precisão dos pixels, e não as do manual da placa)
     global incl_pref, incl
     ed = panel_edge_pixels(i,j)
     t_l_coord = area_de_interesse[ed[0][1]][ed[0][0]]
@@ -393,7 +350,7 @@ def panel_edge_coord(i,j):
     elif incl_pref == "Telhado":
         return coord_result
 
-def place_panels():
+def place_panels():  #insere placas na imagem, na modalidade livre, mapeamento horizontal
     global placas_counter, lista_placas
     index = routing_sequence()
     for i in range(index[0][0], index[0][1], index[0][2]):
@@ -406,10 +363,10 @@ def place_panels():
                 continue
 
 
-def place_panels_updown_route():
+def place_panels_updown_route(): #insere placas na imagem, na modalidade livre, mapeamento vertical
     global placas_counter, lista_placas
     index = routing_sequence()
-    for j in range(index[1][0], index[1][1], index[1][2]):
+    for j in range(index[1][0], index[1][1], index[1][2]):  #a única diferença entre esta funcão e a anterior é que i e j estão trocados
         print("Etapa {} de {}".format(j,len(placas_locadas[0])))
         for i in range(index[0][0], index[0][1], index[0][2]):
             #print("Estamos no ponto {} {}".format(i,j))
@@ -419,7 +376,7 @@ def place_panels_updown_route():
                 continue
 
 
-def place_panels_alternate_orient():
+def place_panels_alternate_orient():  #insere placas na imagem, modalidade alternando orientação, mapeamento horizontal
     global placas_counter, lista_placas
     index = routing_sequence()
     x_axis = 0
@@ -438,37 +395,8 @@ def place_panels_alternate_orient():
                 continue
 
 
-def place_panels_aligned():  #será substituída
-    global placas_counter, axis_lock, panel_pix_x, panel_pix_y, lista_placas
-    index = routing_sequence()
-    x_axis = 0
-    y_axis = 0
-    for i in range(index[0][0], index[0][1], index[0][2]):
-        print("Etapa {} de {}".format(i,len(placas_locadas)))
-        for j in range(index[1][0], index[1][1], index[1][2]):
-            #print("Estamos no ponto {} {}".format(i,j))
-            place_poss = placing_possible(i,j)
-            if place_poss == True and axis_lock == False:
-                execute_placing(i,j,1.0)
-            elif place_poss == True and axis_lock == True:
-                if placas_counter == 0:
-                    execute_placing(i,j,1.0)
-                    x_axis = j
-                    y_axis = i
-                else:
-                    if i == y_axis or j == x_axis:
-                        execute_placing(i,j,1.0)
-                        #x_axis = j   #(pensar nessa possibilidade)
-                        #y_axis = i   #(pensar nessa possibilidade)
-                    elif abs(i-y_axis) >= panel_pix_y and abs(j-x_axis) >= panel_pix_x:
-                        execute_placing(i,j,1.0)
-                        #x_axis = j   #(pensar nessa possibilidade)
-                        #y_axis = i   #(pensar nessa possibilidade)
-            else:   #apenas por motivos de debug
-                continue
 
-
-def place_panels_in_grid(case):
+def place_panels_in_grid(case):  #insere placas na imagem, modalidade alinahdo
     global placas_counter, panel_pix_x, panel_pix_y, lista_placas, needed_placas
     grid = return_all_grid_points(case)
     grid_filter = []
@@ -490,7 +418,7 @@ def place_panels_in_grid(case):
         del grid_filter[p_sha[3]]
 
 
-def place_panels_in_grids_possible(case):
+def place_panels_in_grids_possible(case): #insere placas na imagem, modalidade alinahdo, verificando todos os resultados possíveis
     global placas_counter, panel_pix_x, panel_pix_y, lista_placas, needed_placas, placas_locadas
     grid_init_coord = combinations_in_grid()
     best_placas_locadas = np.full_like(area_de_interesse, None)
@@ -533,27 +461,28 @@ def place_panels_in_grids_possible(case):
 
 
 
-def all_grid_points(i,j,case):
-    #print(case)
+def all_grid_points(i,j,case):  #determina todos os pontos de um grid, a partir de um ponto inicial
     global panel_pix_x, panel_pix_y, heatmap, grid_order_routing, afastamento
     x_list = []
     y_list = []
     coord = []
+    #este trecho determina os pontos iniciais da procura
     if afastamento == 0:
         temp_x_less = j
         temp_x_plus = j + panel_pix_x
         temp_y_less = i
         temp_y_plus = i + panel_pix_y
-    elif incl_orient == '-y' or incl_orient == 'y':
+    elif afastamento != 0 and (incl_orient == '-y' or incl_orient == 'y'):
         temp_x_less = j
         temp_x_plus = j + panel_pix_x
         temp_y_less = i
         temp_y_plus = i + panel_pix_y + afastamento
-    elif incl_orient == '-x' or incl_orient == 'x':
+    elif afastamento != 0 and (incl_orient == '-x' or incl_orient == 'x'):
         temp_x_less = j
         temp_x_plus = j + panel_pix_x + afastamento
         temp_y_less = i
         temp_y_plus = i + panel_pix_y
+    #este trecho faz a procura de todos os outros pontos a partir do laço
     if afastamento == 0:
         while temp_x_less >= 0:
             x_list.append(temp_x_less)
@@ -567,8 +496,7 @@ def all_grid_points(i,j,case):
         while temp_y_plus <= len(heatmap)-1:
             y_list.append(temp_y_plus)
             temp_y_plus += panel_pix_y
-    elif afastamento > 0 and incl_orient == '-y':  #colocar outros casos depois
-        while temp_x_less >= 0:
+    elif afastamento > 0 and (incl_orient == '-y' or incl_orient == 'y'):
             x_list.append(temp_x_less)
             temp_x_less += -panel_pix_x
         while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
@@ -576,10 +504,24 @@ def all_grid_points(i,j,case):
             temp_x_plus += panel_pix_x
         while temp_y_less >= panel_pix_x:  #verificar
             y_list.append(temp_y_less)
-            temp_y_less += -panel_pix_y - afastamento
+            temp_y_less += - panel_pix_y - afastamento
         while temp_y_plus <= len(heatmap)-1:
             y_list.append(temp_y_plus)
             temp_y_plus += panel_pix_y + afastamento
+    elif afastamento > 0 and (incl_orient == '-x' or incl_orient == 'x'):
+        while temp_x_less >= 0:
+            x_list.append(temp_x_less)
+            temp_x_less += -panel_pix_x - afastamento
+        while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
+            x_list.append(temp_x_plus)
+            temp_x_plus += panel_pix_x + afastamento
+        while temp_y_less >= panel_pix_x:  #verificar
+            y_list.append(temp_y_less)
+            temp_y_less += -panel_pix_y
+        while temp_y_plus <= len(heatmap)-1:
+            y_list.append(temp_y_plus)
+            temp_y_plus += panel_pix_y + afastamento
+    #este trecho ordena os pontos a partir das definições do usuário
     if case == 'top-left' and grid_order_routing=='LR':
         x_list.sort()
         y_list.sort()
@@ -630,7 +572,7 @@ def all_grid_points(i,j,case):
                 coord.append([x, y, 0])
     return coord
 
-def return_all_grid_points(case):
+def return_all_grid_points(case):  #retorna os pontos ordenados do grid para a modalidade alinhado
     index = routing_sequence()
     for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
@@ -639,7 +581,7 @@ def return_all_grid_points(case):
                 return all_grid_points(i,j,case)
 
 
-def combinations_in_grid():
+def combinations_in_grid():  #verifica todas as combinações possíveis de grids nas dimensões de uma placa
     global panel_pix_x, panel_pix_y
     init_grid = []
     for i in range(0, panel_pix_y, 1):
@@ -647,24 +589,24 @@ def combinations_in_grid():
             init_grid.append([i, j])
     return init_grid
 
-def overall_score(p_list):
+def overall_score(p_list):  #soma dos scores das placas locadas
     os = 0
     for p in p_list:
         os += p.score
     return os
 
-def overall_score_mean(p_list):
+def overall_score_mean(p_list):  #média dos scores das placas locadas
     os = 0
     for p in p_list:
         os += p.score
     return os/len(p_list)
 
-def return_placa_color(ident):
+def return_placa_color(ident):  #retorna a cor de uma certa placa
     for placa in lista_placas:
         if placa.id == ident:
             return placa.color
 
-def placas_img(c_index):
+def placas_img(c_index):  #gera a imagem das placas locadas a partir da matriz
     soma = placas_locadas
     img = []
     for i in soma:
@@ -689,7 +631,7 @@ def placas_img(c_index):
     return soma
 
 
-def area_de_interesse_img():  #apenas para debug
+def area_de_interesse_img():  #gera imagem da área de interesse, apenas para debug
     soma = area_de_interesse
     img = []
     for i in soma:
@@ -705,7 +647,7 @@ def area_de_interesse_img():  #apenas para debug
     return soma
 
 
-def where_looking_img():  #apenas para debug
+def where_looking_img():  #gera imagem do mapeamento da imagem, apenas para debug
     soma = where_looking
     img = []
     for i in soma:
@@ -721,7 +663,7 @@ def where_looking_img():  #apenas para debug
     return soma
 
 
-def print_placas():  #para debug
+def print_placas():  #imprime as placas locadas e suas propriedades
     global lista_placas
     print("------ Listagem das Placas ------")
     for placa in lista_placas:
@@ -735,71 +677,8 @@ def print_placas():  #para debug
         print("Score: {}".format(placa.score))
     print("---------------------------------")
 
-def get_closest_shadows(value):   #problemática, não será mais o foco
-    global lista_placas, pix_x, pix_y
-    for placa in lista_placas:
-        edges = placa.edges
-        upper = 0
-        lower = 0
-        left = 0
-        right = 0
-        #investigando da borda superior para cima
-        print("Investigando a placa {}".format(placa.id))
-        pix_upper = 0
-        for i in range (edges[0][0], edges[1][0]+1, 1):
-            temp_index = edges[0][1] - 1
-            while (
-            area_de_interesse[i][temp_index] != None and
-            heatmap[i][temp_index] <= value and
-            placas_locadas[i][temp_index] == None
-            ):
-                temp_index += -1
-            if abs(edges[0][1] - temp_index) > pix_upper:
-                pix_upper = abs(edges[0][1] - temp_index)
-        upper = pix_upper*pix_y
-        #investigando da borda inferior para baixo
-        pix_lower = 0
-        for j in range (edges[2][0], edges[3][0]+1, 1):
-            temp_index = edges[2][1] + 1
-            while (
-            area_de_interesse[j][temp_index] != None and
-            heatmap[j][temp_index] <= value and
-            placas_locadas[j][temp_index] == None
-            ):
-                temp_index += 1
-            if abs(edges[2][1] - temp_index) > pix_lower:
-                pix_lower = abs(edges[2][1] - temp_index)
-        lower = pix_lower*pix_y
-        #investigando da borda esquerda para a esquerda
-        pix_left = 0
-        for u in range (edges[0][1], edges[2][1]+1, 1):
-            temp_index = edges[0][0] - 1
-            while (
-            area_de_interesse[temp_index][u] != None and
-            heatmap[temp_index][u] <= value and
-            placas_locadas[temp_index][u] == None
-            ):
-                temp_index += -1
-            if abs(edges[0][0] - temp_index) > pix_left:
-                pix_left = abs(edges[0][0] - temp_index)
-        left = pix_left*pix_y
-        #investigando da borda direita para a direita
-        pix_right = 0
-        for v in range (edges[1][1], edges[3][1]+1, 1):
-            temp_index = edges[1][0] + 1
-            while (
-            area_de_interesse[temp_index][v] != None and
-            heatmap[temp_index][v] <= value and
-            placas_locadas[temp_index][v] == None
-            ):
-                temp_index += 1
-            if abs(edges[1][0] - temp_index) > pix_right:
-                pix_right = abs(edges[1][0] - temp_index)
-        right = pix_right*pix_y
-        placa.closest_shadow = [upper, lower, left, right]
 
-
-def panel_score(i, j):
+def panel_score(i, j):  #retorna o score de uma determinada placa
     global highest_sha_value, panel_pix_x, panel_pix_y
     cumulative_value = 0
     for u in range (i, i-panel_pix_y, -1):  #o menos é para detectar como bottom left
@@ -807,7 +686,7 @@ def panel_score(i, j):
             cumulative_value += (highest_sha_value - heatmap[u][v])
     return (cumulative_value / (highest_sha_value*panel_pix_x*panel_pix_y))
 
-def best_placing():
+def best_placing():  #nas modalidades livres, procura a próxima placa com o melhor score
     global placas_counter, lista_placas
     index = routing_sequence()
     best_score = 0
@@ -826,7 +705,7 @@ def best_placing():
     execute_placing(cbp[0],cbp[1], best_score)
 
 
-def highest_score_position(grid_list):
+def highest_score_position(grid_list):  #determina a posição de maior score dentro da lista de pontos do grid
     temp_score = -1
     temp_x = 0
     temp_y = 0
@@ -839,12 +718,12 @@ def highest_score_position(grid_list):
             temp_index = i
     return [temp_x, temp_y, temp_score, temp_index]
 
-#z:1.6381669565056591
 
 """Variáveis Globais"""
 pix_x = None
 pix_y = None
 pix_area = None
+pix_dens = 50
 
 needed_placas = 100
 placa_dim1 = 1.56
@@ -856,10 +735,12 @@ incl_orient = '-y'
 afastamento = 12 #em pixels
 orient = "Hor"
 routing = "top-left"
+grid_order_routing = 'LR' #LR ou UD
+
 axis_lock = False
 orient_alternation = False
 
-grid_order_routing = 'LR' #LR ou UD
+
 
 placa_dimx = None
 placa_dimy = None
