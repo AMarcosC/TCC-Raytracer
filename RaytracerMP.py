@@ -495,7 +495,6 @@ with open('Raytracer-Config.yaml', "r") as c_file:
     cf = yaml.safe_load(c_file)
 
 
-
 offset = cf['MODELO']['OFFSET']
 pixel_por_metro = cf['GERAL']['DENSIDADE_PIXEL']
 forramento = cf['MODELO']['FORRAMENTO']
@@ -539,7 +538,6 @@ sunpath = cf['TRAJETORIA']
 """Inicialização"""
 cont = 0
 heatmap = []
-shape_points = []  #testando apenas
 
 coordenadas_pixels = pixel_coordinates(n_y,n_x)
 coordenadas_intercept = []
