@@ -5,15 +5,13 @@ from colour import Color
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
+import yaml
 
 """
 Observações:
 
 É desnecessário utilizar a matriz da área de interesse na locação, já que o mapa de calor só existe na área de interesse mesmo.
 Porém ela pode ser utilizada para verificar a inclinação do telhado.
-
-Possíveis aprimoramentos no código:
-- O mapeamento horizontal e vertical podem ser unidos em uma única função, bastando um if statement
 
 """
 
@@ -190,6 +188,8 @@ def alternate_orientation():  #alterna a orientação da placa
     panel_pix_x = temp_pix_y
     panel_pix_y = temp_pix_x
 
+
+
 def routing_sequence():  #define os índices do laço que vai escanear a cena
     global routing, orient_alternation
     if routing == "top-left" and orient_alternation == False:
@@ -351,7 +351,7 @@ def panel_edge_coord(i,j):  #determina as bordas da placa nas suas coordenadas r
         return coord_result
 
 def place_panels():  #insere placas na imagem, na modalidade livre, mapeamento horizontal
-    global placas_counter, lista_placas
+    global placas_counter, lista_placas, needed_placas
     index = routing_sequence()
     for i in range(index[0][0], index[0][1], index[0][2]):
         print("Etapa {} de {}".format(i,len(placas_locadas)))
@@ -361,10 +361,25 @@ def place_panels():  #insere placas na imagem, na modalidade livre, mapeamento h
                 execute_placing(i,j,1.0)
             else:   #apenas por motivos de debug
                 continue
+    while placas_counter < needed_placas:
+        best_score = 0
+        cbp = [0, 0]  #current best place
+        for i in range(index[0][0], index[0][1], index[0][2]):
+            print("Etapa {} de {}".format(i,len(placas_locadas)))
+            for j in range(index[1][0], index[1][1], index[1][2]):
+                #print("Estamos no ponto {} {}".format(i,j))
+                if placing_possible_in_shadow(i,j) == True:
+                    temp_score = panel_score(i,j)
+                    if temp_score > best_score:
+                        best_score = temp_score
+                        cbp = [i, j]
+                    elif temp_score == best_score:
+                        print("Empate!")
+        execute_placing(cbp[0],cbp[1], best_score)
 
 
 def place_panels_updown_route(): #insere placas na imagem, na modalidade livre, mapeamento vertical
-    global placas_counter, lista_placas
+    global placas_counter, lista_placas, needed_placas
     index = routing_sequence()
     for j in range(index[1][0], index[1][1], index[1][2]):  #a única diferença entre esta funcão e a anterior é que i e j estão trocados
         print("Etapa {} de {}".format(j,len(placas_locadas[0])))
@@ -374,10 +389,25 @@ def place_panels_updown_route(): #insere placas na imagem, na modalidade livre, 
                 execute_placing(i,j,1.0)
             else:   #apenas por motivos de debug
                 continue
+    while placas_counter < needed_placas:
+        best_score = 0
+        cbp = [0, 0]  #current best place
+        for j in range(index[1][0], index[1][1], index[1][2]):  #a única diferença entre esta funcão e a anterior é que i e j estão trocados
+            print("Etapa {} de {}".format(j,len(placas_locadas[0])))
+            for i in range(index[0][0], index[0][1], index[0][2]):
+                #print("Estamos no ponto {} {}".format(i,j))
+                if placing_possible_in_shadow(i,j) == True:
+                    temp_score = panel_score(i,j)
+                    if temp_score > best_score:
+                        best_score = temp_score
+                        cbp = [i, j]
+                    elif temp_score == best_score:
+                        print("Empate!")
+        execute_placing(cbp[0],cbp[1], best_score)
 
 
 def place_panels_alternate_orient():  #insere placas na imagem, modalidade alternando orientação, mapeamento horizontal
-    global placas_counter, lista_placas
+    global placas_counter, lista_placas, orient
     index = routing_sequence()
     x_axis = 0
     y_axis = 0
@@ -393,6 +423,93 @@ def place_panels_alternate_orient():  #insere placas na imagem, modalidade alter
                     execute_placing(i,j,1.0)
                 alternate_orientation()
                 continue
+    while placas_counter < needed_placas:
+        best_score = 0
+        cbp = [0, 0]  #current best place
+        cur_or = 'original'
+        for i in range(index[0][0], index[0][1], index[0][2]):
+            print("Etapa {} de {}".format(i,len(placas_locadas)))
+            for j in range(index[1][0], index[1][1], index[1][2]):
+                #print("Estamos no ponto {} {}".format(i,j))
+                if placing_possible_in_shadow(i,j) == True:
+                    temp_score = panel_score(i,j)
+                    if temp_score > best_score:
+                        best_score = temp_score
+                        cbp = [i, j]
+                        cur_or = 'original'
+                    elif temp_score == best_score:
+                        print("Empate!")
+                else:
+                    alternate_orientation()
+                    if placing_possible_in_shadow(i,j) == True:
+                        temp_score = panel_score(i,j)
+                        if temp_score > best_score:
+                            best_score = temp_score
+                            cbp = [i, j]
+                            cur_or = 'alternate'
+                        elif temp_score == best_score:
+                            print("Empate!")
+                    alternate_orientation()
+                    continue
+        if cur_or == 'original':
+            execute_placing(cbp[0],cbp[1], best_score)
+        else:
+            alternate_orientation()
+            execute_placing(cbp[0],cbp[1], best_score)
+            alternate_orientation()
+
+
+def place_panels_alternate_orient_updown_route():  #insere placas na imagem, modalidade alternando orientação, mapeamento horizontal
+    global placas_counter, lista_placas, orient
+    index = routing_sequence()
+    x_axis = 0
+    y_axis = 0
+    for j in range(index[1][0], index[1][1], index[1][2]):  #a única diferença entre esta funcão e a anterior é que i e j estão trocados
+        print("Etapa {} de {}".format(j,len(placas_locadas[0])))
+        for i in range(index[0][0], index[0][1], index[0][2]):
+            #print("Estamos no ponto {} {}".format(i,j))
+            if placing_possible(i,j) == True:
+                execute_placing(i,j,1.0)
+            else:
+                alternate_orientation()
+                if placing_possible(i,j) == True:
+                    execute_placing(i,j,1.0)
+                alternate_orientation()
+                continue
+    while placas_counter < needed_placas:
+        best_score = 0
+        cbp = [0, 0]  #current best place
+        cur_or = 'original'
+        for j in range(index[1][0], index[1][1], index[1][2]):  #a única diferença entre esta funcão e a anterior é que i e j estão trocados
+            print("Etapa {} de {}".format(j,len(placas_locadas[0])))
+            for i in range(index[0][0], index[0][1], index[0][2]):
+                #print("Estamos no ponto {} {}".format(i,j))
+                if placing_possible_in_shadow(i,j) == True:
+                    temp_score = panel_score(i,j)
+                    if temp_score > best_score:
+                        best_score = temp_score
+                        cbp = [i, j]
+                        cur_or = 'original'
+                    elif temp_score == best_score:
+                        print("Empate!")
+                else:
+                    alternate_orientation()
+                    if placing_possible_in_shadow(i,j) == True:
+                        temp_score = panel_score(i,j)
+                        if temp_score > best_score:
+                            best_score = temp_score
+                            cbp = [i, j]
+                            cur_or = 'alternate'
+                        elif temp_score == best_score:
+                            print("Empate!")
+                    alternate_orientation()
+                    continue
+        if cur_or == 'original':
+            execute_placing(cbp[0],cbp[1], best_score)
+        else:
+            alternate_orientation()
+            execute_placing(cbp[0],cbp[1], best_score)
+            alternate_orientation()
 
 
 
@@ -721,27 +838,34 @@ def highest_score_position(grid_list):  #determina a posição de maior score de
 
 
 """Variáveis Globais"""
+with open('PanelPlacer-Config.yaml', "r") as c_file:
+    cf = yaml.safe_load(c_file)
+print(cf)
+
 pix_x = None
 pix_y = None
 pix_area = None
-pix_dens = 50
+pix_dens = cf['GERAL']['DENSIDADE_PIXEL']
 
-needed_placas = 100
-placa_dim1 = 1.56
-placa_dim2 = 0.70
-esp_placa = 0.03
-incl_pref = "Placa"  #Pode ser "Telhado" ou "Placa"
-incl_value = 20   #em graus
-incl_orient = '-y'
-afastamento = 12 #em pixels
-orient = "Hor"
-routing = "top-left"
-grid_order_routing = 'LR' #LR ou UD
+needed_placas = cf['PLACA']['PLACAS_NECESSARIAS']
+placa_dim1 = cf['PLACA']['PLACA_DIM_1']
+placa_dim2 = cf['PLACA']['PLACA_DIM_2']
+esp_placa = cf['PLACA']['PLACA_ESP']
+incl_pref = cf['PLACA']['INCL_PREFERENCIAL']  #Pode ser "Telhado" ou "Placa"
+incl_value = cf['PLACA']['INCL_VALOR']  #em graus
+incl_orient = cf['PLACA']['INCL_ORIENT']
+afastamento = cf['PLACA']['AFASTAMENTO_PLACAS']
 
-axis_lock = False
-orient_alternation = False
+orient = cf['CASO']['ORIENTACAO']
+routing = cf['CASO']['EXTREMIDADE_PRIORIZADA']
+grid_order_routing = cf['CASO']['ESCANEAMENTO']
 
+aligned = cf['CASO']['ALINHADO']
+orient_alternation = cf['CASO']['ALTERNAR_ORIENT']
+best_result_scan = cf['CASO']['MELHOR_CASO']
 
+name_placas_obj = cf['SAIDA']['PLACAS_OBJ']
+name_caso = cf['SAIDA']['NOME_CASO']
 
 placa_dimx = None
 placa_dimy = None
@@ -755,25 +879,17 @@ panel_pix_y = 21
 #Ordem: orient, routing, axis_lock, orient_alternation
 
 cases = [
-#['Hor', 'top-left', False, False],
-#['Hor', 'top-right', False, False],
-#['Hor', 'bottom-left', False, False],
-['Hor', 'top-left', False, False],
-#['Vert', 'bottom-right', True, False],
-#['Vert', 'bottom-right', False, True],
+[orient, routing, aligned, orient_alternation]
 ]
 
-file_area = open('area', 'rb')
+file_area = open(cf['ENTRADA']['AREA_BIN'], 'rb')
 area_de_interesse = pickle.load(file_area)
 
-file_heatmap = open('heatmap', 'rb')
+file_heatmap = open(cf['ENTRADA']['HEATMAP_BIN'], 'rb')
 heatmap = pickle.load(file_heatmap)
 highest_sha_value = highest_value_in_array(heatmap)
 print("O maior valor de sombreamento é {}".format(highest_sha_value))
 
-#Proposta 01
-"""
-#execução de todos os casos
 for case in cases:
     lista_placas = []
     placas_counter = 0
@@ -792,45 +908,29 @@ for case in cases:
     dimention_to_pixel()
     print("Inclinação: {}".format(incl))
     placas_locadas = np.full_like(area_de_interesse, None)
-    if axis_lock == True and orient_alternation == False:
-        place_panels_aligned()
-    elif axis_lock == False and orient_alternation == True:
-        place_panels_alternate_orient()
-    elif axis_lock == True and orient_alternation == True:
-        print("Não há função para este caso!")
-        place_panels()
+    if aligned == False and orient_alternation == False:
+        if grid_order_routing == 'LR':
+            place_panels()
+        elif grid_order_routing == 'UD':
+            place_panels_updown_route()
+        else:
+            print("Verificar ordem de escaneamento!")
+    elif aligned == False and orient_alternation == True:
+        if grid_order_routing == 'LR':
+            place_panels_alternate_orient()
+        elif grid_order_routing == 'UD':
+            place_panels_alternate_orient_updown_route()
+        else:
+            print("Verificar ordem de escaneamento!")
+    elif aligned == True and best_result_scan == False:
+        place_panels_in_grid(routing)
+    elif aligned == True and best_result_scan == True:
+        place_panels_in_grids_possible(routing)
     else:
-        place_panels()
-    while placas_counter < needed_placas:
-        best_placing()
-    placas_img(case_index)
-    overlay_images('output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
-    print_placas()
-    python_array_to_pickle(lista_placas, 'lista_placas')
-"""
-
-for case in cases:
-    lista_placas = []
-    placas_counter = 0
-    case_index = cases.index(case)
-    print("-------------------------")
-    print("----Iniciando caso {}----".format(cases.index(case)))
-    print("-------------------------")
-    orient = case[0]
-    routing = case[1]
-    axis_lock = case[2]
-    orient_alternation = case[3]
-    pix_dim=pixel_size()
-    incl = find_slope(area_de_interesse)
-    placa_projection()
-    print(placa_dimx, placa_dimy)
-    dimention_to_pixel()
-    print("Inclinação: {}".format(incl))
-    placas_locadas = np.full_like(area_de_interesse, None)
-    place_panels_in_grid(routing)
+        print('Verificar se todas as configurações foram feitas no arquivo PanelPlacer-Config')
     placas_img(case_index)
     overlay_images(r'output/{}-Placas_{}_orient-{}_{}placas.png'.format(case_index, routing, orient, placas_counter), 'output/Heatmap.png','output/{}-placas_overlay.png'.format(cases.index(case)))
     print_placas()
-    python_array_to_pickle(lista_placas, 'lista_placas')
-    list_to_obj_file_new(lista_placas, esp_placa)
+    python_array_to_pickle(lista_placas, cf['SAIDA']['PLACAS_BIN'])
+    list_to_obj_file_new(lista_placas, esp_placa, cf['SAIDA']['PLACAS_OBJ'])
     print(overall_score_mean(lista_placas))

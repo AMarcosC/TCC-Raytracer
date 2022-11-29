@@ -387,9 +387,9 @@ def list_to_obj_file(p_list):
         file.write("f {}\n".format(f))
     file.close()
 
-def list_to_obj_file_new(p_list, esp):
+def list_to_obj_file_new(p_list, esp, name):
     lists = panel_to_list_new(p_list, esp)
-    file = open("Panels-3D.obj","w+")
+    file = open(name,"w+")
     file.write("#Modelo 3d das placas - Antonio Marcos Cruz da Paz\n")
     pc = 1
     for o in lists:

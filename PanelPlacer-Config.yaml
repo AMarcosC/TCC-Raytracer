@@ -1,0 +1,30 @@
+GERAL:
+  DENSIDADE_PIXEL: 0  #quantidade de pixels por unidade de medida adotada no modelo  #inserir número negativo ou zero caso não se conheça
+
+PLACA:
+  PLACAS_NECESSARIAS: 36  #quantidade desejada de placas para inserção
+  PLACA_DIM_1: 1.56  #uma das dimensões da face da placa
+  PLACA_DIM_2: 0.7  #outra dimensão da face da placa
+  PLACA_ESP: 0.03  #espessura da placa
+  INCL_PREFERENCIAL: "Placa"  #pode ser "Telhado" ou "Placa"
+  INCL_VALOR: 20  #valor em graus da inclinação da placa, caso INCL_PREFERENCIAL="Placa"
+  INCL_ORIENT: '-y'  #direção da inclinação da placa  #pode ser 'x', '-x', 'y', '-y', null
+  AFASTAMENTO_PLACAS: 0 #valor em pixels do afastamento entre as placas inseridas
+
+CASO:
+  ORIENTACAO: "Vert"  #orientação prioritária para placas inseridas  #pode ser "Hor" ou "Vert"
+  EXTREMIDADE_PRIORIZADA: "bottom-right"  #extremidade priorizada pelo programa, onde começará o escaneamento da tela  #pode ser 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+  ESCANEAMENTO: 'UD'  #sentido pelo qual os pixels serão verificados  #pode ser 'LR' (horizontal) ou 'UD' (vertical)
+  ALINHADO: yes  #se o programa fará a inserção na modalidade alinhado
+  ALTERNAR_ORIENT: no  #se o programa alternará entre placas verticais e horizontais no mesmo caso
+  #ATENÇÃO: ALINHADO e ALTERNAR_ORIENT não podem ser 'yes' simultaneamente
+  MELHOR_CASO: no  #se o programa vai procurar o melhor caso  #somente ativar se ALINHADO='yes'
+
+ENTRADA:
+  AREA_BIN: 'area'  #caminho do arquivo binário da área de interesse
+  HEATMAP_BIN: 'heatmap'  #caminho do arquivo binário do mapa de calor
+
+SAIDA:
+  NOME_CASO: 'teste'  #prefixo dos arquivos gerados para facilitar identificação
+  PLACAS_BIN: 'lista_placas'  #caminho do arquivo binário da lista das placas
+  PLACAS_OBJ: 'Placas-3d.obj'  #caminho do arquivo .obj do modelo tridimensional das placas
