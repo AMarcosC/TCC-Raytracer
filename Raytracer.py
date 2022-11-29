@@ -1,3 +1,8 @@
+""" ATENÇÃO! CÓDIGO DESCONTINUADO: UTILIZAR APENAS PARA CASOS DE INCOMPATIBILIDADE
+    COM A VERSÃO RaytracerMP.py, QUE UTILIZA MULTIPROCESSAMENTO EM CPU
+
+    ATTENTION: DEPRECATED VERSION!
+"""
 """Notas da Versão 0.8"""
 """
 Autor: Antônio Marcos Cruz da Paz - antonio.marcos@aluno.ufca.edu.br
@@ -454,12 +459,6 @@ print(heatmap_somado)
 
 python_array_to_pickle(heatmap_somado, 'heatmap')
 python_array_to_pickle(area_de_interesse, 'area')
-
-create_shape(1)
-shape_csv = np.asarray(shape_points)
-print(shape_csv)
-np.savetxt("teste/shape.csv", shape_csv, delimiter=",",fmt='%.4f') #possibilidade 01 (uma linha pra cada coordenada) fmt='%.4e'
-#shape_csv.tofile('shape.csv',sep=',',format='%10.4f') #possibilidade 02 (tudo numa linha)
 
 
 print("---------------Terminou-------------------")

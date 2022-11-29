@@ -493,7 +493,7 @@ print("Número de núcleos da CPU: {}".format(core_count))
 
 with open('Raytracer-Config.yaml', "r") as c_file:
     cf = yaml.safe_load(c_file)
-print(cf)
+
 
 
 offset = cf['MODELO']['OFFSET']
@@ -560,16 +560,14 @@ for time in sunpath:
     tabela1 = trace_tri()  #transcreve os raios emitidos e a sua resposta em uma matriz
     heatmap.append(shadow_to_heatmap(tabela1))
     img1 = Image.fromarray(np.uint8(tabela1)).convert('RGBA')  #Transformando a matriz em uma imagem .png
-    img1.save('output/MRay_Teste{}.png'.format(cont))
+    img1.save('output/{}-{}.png'.format(cf['DADOS']['NOME_IMAGENS'],cont))
 
-#print(heatmap)
 
 
 heatmap_somado = heatmap_to_img(heatmap)
-#print(heatmap_somado)
 
-python_array_to_pickle(heatmap_somado, 'heatmap')
-python_array_to_pickle(area_de_interesse, 'area')
+python_array_to_pickle(heatmap_somado, cf['DADOS']['NOME_HEATMAP_BIN'])
+python_array_to_pickle(area_de_interesse, cf['DADOS']['NOME_AREA_BIN'])
 
 
 print("---------------Terminou-------------------")

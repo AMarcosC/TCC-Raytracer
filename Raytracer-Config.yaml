@@ -11,6 +11,11 @@ MODELO:
   OFFSET: 0  #valor em graus entre o norte do modelo e o plano de trabalho (eixo y)
   FORRAMENTO: 1.7 #valor adotado de forramento para as bordas da imagem (recomenda-se um valor imediatamente maior à maior dimensão da placa utilizada)
 
+DADOS:
+  NOME_IMAGENS: 'Teste'  #sugestão: data da trajetória
+  NOME_AREA_BIN: 'area'  #nome do binário que armazenará a área de interesse  #sugestão: area
+  NOME_HEATMAP_BIN: 'heatmap' #nome do binário que armazenará o mapa de calor  #sugestão: heatmap
+
 TRAJETORIA: [
 #[elevação,azimute]  #não pode ter espaço depois da vírgula
 #[-0.8330,73.97],

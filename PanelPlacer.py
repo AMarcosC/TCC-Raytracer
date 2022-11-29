@@ -497,9 +497,10 @@ def all_grid_points(i,j,case):  #determina todos os pontos de um grid, a partir 
             y_list.append(temp_y_plus)
             temp_y_plus += panel_pix_y
     elif afastamento > 0 and (incl_orient == '-y' or incl_orient == 'y'):
+        while temp_x_less >= 0:
             x_list.append(temp_x_less)
             temp_x_less += -panel_pix_x
-        while temp_x_plus <= len(heatmap[0])-panel_pix_x-1:
+        while temp_x_plus <= len(heatmap[0])- panel_pix_x -1:
             x_list.append(temp_x_plus)
             temp_x_plus += panel_pix_x
         while temp_y_less >= panel_pix_x:  #verificar
