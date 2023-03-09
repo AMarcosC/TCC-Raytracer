@@ -1,5 +1,11 @@
 # TCC-Raytracer e TCC-PanelPlacer
 
+O Trabalho de Conclusão de Curso do qual este código está associado pode ser lido [aqui](/manual/TCC.pdf)
+
+![Resultados de inserção do Exemplo 01 do TCC](/manual/PAZ.png "Resultados de inserção do Exemplo 01 do TCC")
+
+![Campo escalar de sombreamento de um edifício em Crato-CE](/manual/Edif.png "Campo escalar de sombreamento de um edifício em Crato-CE")
+
 ## Instalação
 
 O programa foi produzido utilizando o sistema operacional Ubuntu 20.04.4 LTS, com a versão do 3.8.10 do Python. Esta versão e versões superiores do Ubuntu devem permitir a execução do programa de forma nativa. Além disso, qualquer sistema operacional com uma distribuição do Python na versão 3.8.2 ou superior devem rodar o programa. Versões do Python 3.x inferiores também devem rodar o programa, mas talvez não suportem algumas das bibliotecas utilizadas. Para execução em sistemas operacionais Windows, é recomendado o uso de uma distribuição como a [Anaconda](https://www.anaconda.com/products/distribution), ou o uso do terminal [Ubuntu on Windows](https://apps.microsoft.com/store/detail/ubuntu-on-windows/9NBLGGH4MSV6?hl=pt-br&gl=br), que reproduz as funcionalidades do terminal do Ubuntu no Windows, e já possui Python instalado.
