@@ -136,4 +136,6 @@ Os arquivos soltos na pasta raiz do repositório, como também as pastas *teste*
 
 ## Exemplos e Casos
 
+Campo escalar de sombreamento de um edifício em Crato-CE:
+
 ![Campo escalar de sombreamento de um edifício em Crato-CE](/manual/Edif.png "Campo escalar de sombreamento de um edifício em Crato-CE")
