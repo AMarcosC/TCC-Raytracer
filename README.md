@@ -4,8 +4,6 @@ O Trabalho de Conclusão de Curso do qual este código está associado pode ser 
 
 ![Resultados de inserção do Exemplo 01 do TCC](/manual/PAZ.png "Resultados de inserção do Exemplo 01 do TCC")
 
-![Campo escalar de sombreamento de um edifício em Crato-CE](/manual/Edif.png "Campo escalar de sombreamento de um edifício em Crato-CE")
-
 ## Instalação
 
 O programa foi produzido utilizando o sistema operacional Ubuntu 20.04.4 LTS, com a versão do 3.8.10 do Python. Esta versão e versões superiores do Ubuntu devem permitir a execução do programa de forma nativa. Além disso, qualquer sistema operacional com uma distribuição do Python na versão 3.8.2 ou superior devem rodar o programa. Versões do Python 3.x inferiores também devem rodar o programa, mas talvez não suportem algumas das bibliotecas utilizadas. Para execução em sistemas operacionais Windows, é recomendado o uso de uma distribuição como a [Anaconda](https://www.anaconda.com/products/distribution), ou o uso do terminal [Ubuntu on Windows](https://apps.microsoft.com/store/detail/ubuntu-on-windows/9NBLGGH4MSV6?hl=pt-br&gl=br), que reproduz as funcionalidades do terminal do Ubuntu no Windows, e já possui Python instalado.
@@ -135,3 +133,7 @@ Os arquivos soltos na pasta raiz do repositório, como também as pastas *teste*
 - Produzir arquivo com as coordenadas das placas para inserir no AutoCAD, por exemplo; A utilização da biblioteca `pyautocad` se mostrou uma ótima alternativa, mas a sua inconstância no funcionamento para atuais versões do *AutoCAD* a torna uma solução pouco desejável. Seu repositório não é mais atualizado desde 2016. Um arquivo que retorne as coordenadas das placas pode ser utilizado por um outro programa produzido em outra linguagem, ou inclusive uma rotina `AutoLisp`, que o *AutoCAD* rode nativamente. O arquivo `lista_placas` possui estas coordenadas, mas em binário, e dentro da classe criada pelo programa.
 - Classificar o resultado por um grau de compacidade, relativo a quantidade de áreas livres e seus valores, nas modalidades *livre* e *livre alternando orientação*;
 - Uso de arquivos `.csv` ou planilhas similares, para tornar a inserção da trajetória solar mais prática e menos propensa a erros. Esta medida não foi adotada devido ao desejo de se utilizar uma interface gráfica que torne toda a inserção de dados pelo usuário mais cômoda.
+
+## Exemplos e Casos
+
+![Campo escalar de sombreamento de um edifício em Crato-CE](/manual/Edif.png "Campo escalar de sombreamento de um edifício em Crato-CE")
